@@ -1,6 +1,6 @@
 # Parameter Evidence Support
 
-A Codex skill for turning a manuscript's parameter list into an auditable, page-cited evidence report.
+A self-contained Codex skill for turning a manuscript's parameter list into an auditable, page-cited evidence report.
 
 It was built for computational-biology and systems-biology manuscripts, especially cases where a main text or SI mixes experimental measurements, derived rates, normalized Hill thresholds, fitted parameters, scan ranges, and code-set numerical constants.
 
@@ -8,14 +8,27 @@ It was built for computational-biology and systems-biology manuscripts, especial
 
 - Extracts every numeric parameter from a manuscript, SI, parameter table, or code.
 - Classifies each value as **A measured**, **B derived**, **C model/code-set**, or **D not found**.
-- Searches primary literature and verifies DOI/PMID metadata.
-- Downloads authorized PDFs through the user's logged-in institutional browser session.
+- Searches Europe PMC and OpenAlex for candidate primary papers.
+- Verifies DOI/PMID metadata through Crossref and PubMed.
+- Downloads open-access PDFs through OpenAlex, Unpaywall, and Europe PMC.
 - Locates the exact sentence, figure, or table; records PDF page and journal page.
-- Captures an original-text screenshot when a PDF is available.
+- Renders a full-page PNG and a highlighted crop of the source passage.
 - Checks experimental conditions such as species, cell type, assay, probe, construct, salt, and time window.
 - Distinguishes a measurement from a normalized threshold or a code-derived value.
 - Generates a fixed-format Chinese DOCX/PDF with a correction list and explicit `【找不到】` markers.
 - Produces manuscript-ready English wording for supported values.
+
+The core path does **not** require any other Codex skill. Optional integrations are listed below.
+
+## Requirements
+
+- Python 3.10 or later
+- Network access for metadata and open-access PDF lookup
+- Microsoft Word or LibreOffice for PDF export (optional but recommended)
+
+```bash
+pip install -r requirements.txt
+```
 
 ## Install
 
@@ -33,47 +46,62 @@ C:\Users\<you>\.codex\skills\parameter-evidence-support
 
 The skill is loaded from `SKILL.md`.
 
-## Use
+## Quick start
+
+```bash
+# 1. Find candidate papers
+python scripts/find_papers.py "GATA2 half-life P815" --limit 15 --out candidates.csv
+
+# 2. Verify DOI/PMID metadata
+python scripts/verify_refs.py 10.1111/j.1365-2443.2005.00864.x 15966900
+
+# 3. Download an open-access PDF
+python scripts/download_pdf.py 10.1371/journal.pcbi.1000771 --out-dir pdfs --email you@example.org
+
+# 4. Locate a verbatim passage and make screenshots
+python scripts/locate_passage.py pdfs/paper.pdf "verbatim sentence" --out-dir shots --page 3
+
+# 5. Build the Word report
+python scripts/build_evidence_docx.py spec.json report.docx
+```
 
 Example request:
 
 ```text
 Use parameter-evidence-support to audit every parameter in my manuscript and SI.
-Trace each value to a primary source, download authorized PDFs, capture exact
+Trace each value to a primary source, download authorized PDFs, locate exact
 passages and screenshots, correct wrong citations or values, and build the Word
 report in the established format. Mark anything unavailable as 【找不到】.
 ```
 
-## Scripts
+## Reproducibility
 
-```bash
-# Build a DOCX from a JSON specification
-python scripts/build_evidence_docx.py spec.json output.docx
+A second user can reproduce the same report structure when they have:
 
-# Find candidate papers without MCP or an API key
-python scripts/find_papers.py "GATA2 half-life P815" --limit 12 --out candidates.csv
+1. this repository;
+2. Python and the packages in `requirements.txt`;
+3. the same `spec.json`;
+4. the same local PDFs and screenshot files referenced by the spec;
+5. lawful access to the sources.
 
-# Verify DOI/PMID metadata
-python scripts/verify_refs.py 10.1111/j.1365-2443.2005.00864.x 15966900
-```
+The builder is deterministic for the entry order, typography, colours, tables, and screenshot treatment. Pagination can vary slightly across Word/LibreOffice versions or if the specified fonts are unavailable.
 
-Python dependency:
-
-```bash
-pip install python-docx
-```
+The evidence itself is reproducible only when the source PDF and the quoted page are available. Every entry should keep the local PDF filename and page. If a source is paywalled and the second user has no subscription, the correct result is `【找不到全文】`, not a fabricated screenshot.
 
 ## Repository layout
 
 ```text
 SKILL.md
+requirements.txt
 agents/openai.yaml
 references/entry-spec.md
 references/verification-playbook.md
 references/literature-stack.md
-scripts/build_evidence_docx.py
 scripts/find_papers.py
 scripts/verify_refs.py
+scripts/download_pdf.py
+scripts/locate_passage.py
+scripts/build_evidence_docx.py
 assets/example_spec.json
 assets/example_screenshot.png
 ```
@@ -87,6 +115,23 @@ assets/example_screenshot.png
 - A search hit is a candidate, not evidence.
 - If a source is unavailable, state exactly what is missing and mark `【找不到】`.
 - Do not bypass paywalls, CAPTCHAs, Cloudflare, or institutional login.
+
+## Optional integrations
+
+These are not required for the core path:
+
+- `nature-academic-search` for broader MCP-based discovery.
+- `nature-downloader` for authorized institutional/browser-session PDF access.
+- `organize-research-literature` for bulk inventory of a large local PDF folder.
+- `nature-reader` for full-paper reading or translation.
+
+## Dependencies and licenses
+
+- `python-docx` - MIT
+- `PyMuPDF` - AGPL-3.0 or commercial license
+- `Pillow` - HPND
+
+Check dependency licenses before redistributing a modified bundle. This repository does not vendor those libraries and does not include manuscript data or downloaded copyrighted PDFs.
 
 ## Scope
 

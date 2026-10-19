@@ -21,6 +21,12 @@ Accept a reference only when DOI, title, journal, volume, pages and first author
 
 ## 2. Find a legal PDF
 
+Bundled open-access attempt:
+
+```bash
+python scripts/download_pdf.py <DOI-or-PMID> --out-dir pdfs --email you@example.org
+```
+
 Order of preference:
 
 1. publisher PDF via the institution's logged-in browser;
@@ -33,7 +39,15 @@ If the publisher shows a CAPTCHA or Cloudflare challenge, do not bypass it. Try 
 
 ## 3. Locate the sentence
 
-Use PyMuPDF to dump text page by page:
+Bundled locator:
+
+```bash
+python scripts/locate_passage.py paper.pdf "verbatim sentence" --out-dir shots --page 2
+```
+
+It writes a JSON record, a full-page PNG, and a highlighted crop. It tolerates line breaks, PDF hyphenation, and variable spacing.
+
+Manual fallback: dump text page by page and search for the number.
 
 ```python
 import fitz

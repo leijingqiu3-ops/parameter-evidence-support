@@ -1,4 +1,4 @@
 interface:
   display_name: "Parameter Evidence Support (参数文献支撑)"
-  short_description: "Trace every manuscript parameter to primary literature; verify metadata, exact passages, pages and conditions; capture PDF screenshots; generate a fixed-format Chinese DOCX/PDF with explicit 【找不到】 markers."
-  default_prompt: "Use the parameter-evidence-support skill to audit every parameter in my manuscript and SI, trace it to primary sources, download authorized PDFs, capture exact passages and screenshots, correct wrong citations or values, and build the Word report in the established format. Mark anything unavailable as 【找不到】."
+  short_description: "Self-contained workflow: find papers, download open-access PDFs, locate exact passages and screenshots, verify metadata, and build a fixed-format Chinese DOCX/PDF with explicit 【找不到】 markers."
+  default_prompt: "Use the parameter-evidence-support skill to audit every parameter in my manuscript and SI, trace it to primary sources, download authorized PDFs, locate exact passages and screenshots, correct wrong citations or values, and build the Word report in the established format. Mark anything unavailable as 【找不到】."

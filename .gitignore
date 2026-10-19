@@ -8,3 +8,6 @@ Thumbs.db
 *.pdf
 candidates.csv
 verified_refs.csv
+pdfs/
+shots/
+screenshots/
