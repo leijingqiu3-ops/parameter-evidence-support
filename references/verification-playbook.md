@@ -37,6 +37,18 @@ Order of preference:
 
 If the publisher shows a CAPTCHA or Cloudflare challenge, do not bypass it. Try the institutional session once, then mark `【找不到全文】` and use the abstract only. Record that decision in the entry.
 
+The bundled downloader now classifies failures instead of returning a generic ``not a PDF`` message:
+
+| Status | Meaning | Next action |
+|---|---|---|
+| `cloudflare_challenge` | Cloudflare or equivalent bot verification intercepted the request | Open the page in the user's authorized browser, let the user complete verification, then retry once |
+| `publisher_verification` | CAPTCHA or human-verification page | Same manual handoff; do not automate the challenge |
+| `institutional_access_required` | HTTP 401/403 without a challenge page | Use the library/CARSI session or mark `【找不到全文】` |
+| `rate_limited` | HTTP 429 | Retry later or use the browser session |
+| `response_not_pdf` | Publisher returned HTML or another format | Inspect the landing page; do not rename HTML to PDF |
+
+Verification and institutional-access statuses return exit code 4. Treat that as `publisher verification waiting for user`, not as a missing paper.
+
 ## 3. Locate the sentence
 
 Bundled locator:
@@ -72,6 +84,8 @@ If the number appears only in a figure axis or table image, say so; do not inven
 - Do not crop off `±`, units, superscripts or the figure panel label.
 - Name files `NN_parameter_value_firstauthor_page.png`.
 - If no screenshot can be produced, write `【找不到截图】`; never insert an unrelated figure.
+- If the evidence chain needs more than one image (for example, a value sentence plus the reference-list entry that identifies the cited paper), put both in the entry's `images` list. Do not merge them into one unlabeled composite.
+- Use `image_page_break: "auto"` (default) for tall screenshots. The builder starts a new page when the rendered image exceeds 9 cm in height and keeps the caption with the image.
 
 ## 5. Conditions that must be recorded
 

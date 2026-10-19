@@ -34,7 +34,7 @@
 12. **核验结论与建议改法：** verdict, coloured red/amber/green.
 13. **可直接写入论文的英文表述：** one paste-ready sentence.
 14. **本地 PDF：** filename + PDF page + journal page, or `【找不到全文】`.
-15. **原文截图：** image + caption naming paper, page, and what is highlighted.
+15. **原文截图：** one or more images + captions naming paper, page, and what is highlighted.
 
 For class C entries, fields 5–7 use:
 
@@ -88,8 +88,15 @@ For class C entries, fields 5–7 use:
           "verdict_level": "keep",
           "english": "GATA2 is rapidly turned over, with a reported half-life of 27.7 ± 6.1 min in P815 cells.",
           "local": "Minegishi_2005_GenesCells_GATA2-turnover.pdf, PDF p.2 / journal p.694",
-          "image": "03_原文截图/01_GATA2_27.7min_Minegishi_p2.png",
-          "image_caption": "Minegishi et al. 2005, PDF p.2；黄底为 27.7 ± 6.1 min 原句。"
+          "image_width_cm": 16.4,
+          "image_max_height_cm": 20.0,
+          "image_page_break": "auto",
+          "images": [
+            {
+              "path": "03_原文截图/01_GATA2_27.7min_Minegishi_p2.png",
+              "caption": "Minegishi et al. 2005, PDF p.2；黄底为 27.7 ± 6.1 min 原句。"
+            }
+          ]
         }
       ]
     }
@@ -109,4 +116,18 @@ For class C entries, fields 5–7 use:
 
 `verdict_level` accepts `keep`, `relabel`, `rederive`, `remove`, `missing`; the builder maps them to green/amber/red.
 
-`image` may be absolute or relative to the JSON file. If omitted, the builder prints a visible `【找不到截图】` line instead of leaving a silent gap.
+## Screenshot controls
+
+| Field | Default | Meaning |
+|---|---|---|
+| `images` | none | Ordered list of screenshot objects. Use this when one parameter needs a quote page plus a reference page, a figure, or a table. |
+| `images[].path` | required | Absolute path or path relative to the JSON file. |
+| `images[].caption` | empty | Caption placed directly below that image. |
+| `images[].width_cm` | `image_width_cm` / 16.4 | Preferred display width. |
+| `images[].max_height_cm` | `image_max_height_cm` / 20.0 | Maximum display height; width is reduced proportionally if needed. |
+| `images[].page_break` | `image_page_break` / `auto` | `true`, `false`, or `auto`. `auto` starts a new page when the displayed image is taller than `image_page_break_height_cm`. |
+| `image_width_cm` | 16.4 | Entry-level default width. |
+| `image_max_height_cm` | 20.0 | Entry-level default height cap. |
+| `image_page_break_height_cm` | 9.0 | Threshold for automatic page breaks. |
+
+Backward-compatible single-image fields `image` and `image_caption` remain supported. If neither `images` nor `image` is present, the builder prints a visible `【找不到截图】` line instead of leaving a silent gap. A tall screenshot is automatically moved to a fresh page and kept with its caption; this prevents Word from leaving an orphan caption at the bottom of the previous page.

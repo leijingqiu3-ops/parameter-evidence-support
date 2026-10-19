@@ -16,6 +16,11 @@ from docx.oxml.ns import qn
 from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.shared import Cm, Pt, RGBColor
 
+try:
+    from PIL import Image as PILImage
+except ImportError:
+    PILImage = None
+
 ACCENT = "174A6E"
 ACCENT_LIGHT = "EAF1F6"
 ACCENT_PALE = "F4F8FA"
@@ -26,6 +31,9 @@ GREEN = RGBColor(35, 108, 77)
 AMBER = RGBColor(145, 94, 15)
 FONT = "Microsoft YaHei"
 LATIN = "Cambria"
+DEFAULT_IMAGE_WIDTH_CM = 16.4
+DEFAULT_IMAGE_MAX_HEIGHT_CM = 20.0
+DEFAULT_IMAGE_PAGE_BREAK_HEIGHT_CM = 9.0
 
 VERDICT_COLORS = {
     "keep": GREEN,
@@ -218,25 +226,106 @@ def add_entry(entry, number):
     add_snippet(entry)
 
 
-def add_snippet(entry):
-    image = entry.get("image")
+def _as_image_items(entry):
+    raw = entry.get("images")
+    if raw is None:
+        if entry.get("image"):
+            raw = [{
+                "path": entry.get("image"),
+                "caption": entry.get("image_caption", ""),
+                "width_cm": entry.get("image_width_cm"),
+                "max_height_cm": entry.get("image_max_height_cm"),
+                "page_break": entry.get("image_page_break"),
+            }]
+        else:
+            raw = []
+    elif isinstance(raw, (str, dict)):
+        raw = [raw]
+    return [{"path": item} if isinstance(item, str) else dict(item) for item in raw]
+
+
+def _image_size_cm(path, width_cm, max_height_cm):
+    try:
+        width_cm = float(width_cm) if width_cm is not None else DEFAULT_IMAGE_WIDTH_CM
+        max_height_cm = float(max_height_cm) if max_height_cm is not None else DEFAULT_IMAGE_MAX_HEIGHT_CM
+    except (TypeError, ValueError):
+        width_cm = DEFAULT_IMAGE_WIDTH_CM
+        max_height_cm = DEFAULT_IMAGE_MAX_HEIGHT_CM
+    if PILImage is None:
+        return width_cm, None
+    try:
+        with PILImage.open(path) as image:
+            px_width, px_height = image.size
+    except Exception:
+        return width_cm, None
+    if px_width <= 0 or px_height <= 0:
+        return width_cm, None
+    height_cm = width_cm * px_height / px_width
+    if max_height_cm > 0 and height_cm > max_height_cm:
+        scale = max_height_cm / height_cm
+        width_cm *= scale
+        height_cm = max_height_cm
+    return width_cm, height_cm
+
+
+def _should_break_before_image(entry, item, height_cm):
+    value = item.get("page_break", entry.get("image_page_break", "auto"))
+    if isinstance(value, str) and value.lower() == "auto":
+        threshold = entry.get(
+            "image_page_break_height_cm",
+            DEFAULT_IMAGE_PAGE_BREAK_HEIGHT_CM,
+        )
+        try:
+            threshold = float(threshold)
+        except (TypeError, ValueError):
+            threshold = DEFAULT_IMAGE_PAGE_BREAK_HEIGHT_CM
+        return height_cm is not None and height_cm > threshold
+    return bool(value)
+
+
+def _add_screenshot(entry, item, index, total):
+    image = item.get("path") or item.get("image")
+    prefix = f"原文截图 {index}：" if total > 1 else "原文截图："
     if not image:
-        add_para("原文截图：【找不到截图】", size=9.2, color=AMBER, before=2, after=6)
+        add_para(prefix + "【找不到截图】", size=9.2, color=AMBER, before=2, after=6)
         return
     path = Path(image)
     if not path.is_absolute():
         path = SPEC_DIR / path
     if not path.exists():
-        add_para(f"原文截图：【找不到截图】{image}", size=9.2, color=AMBER, before=2, after=6)
+        add_para(prefix + f"【找不到截图】{image}", size=9.2, color=AMBER, before=2, after=6)
         return
+    width_cm, height_cm = _image_size_cm(
+        path,
+        item.get("width_cm", entry.get("image_width_cm")),
+        item.get("max_height_cm", entry.get("image_max_height_cm")),
+    )
+    if _should_break_before_image(entry, item, height_cm):
+        doc.add_page_break()
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(2)
     p.paragraph_format.space_after = Pt(2)
+    p.paragraph_format.keep_together = True
     p.paragraph_format.keep_with_next = True
-    p.add_run().add_picture(str(path), width=Cm(16.4))
-    if entry.get("image_caption"):
-        add_para(entry["image_caption"], size=8.8, color=MUTED, before=0, after=8)
+    run = p.add_run()
+    if height_cm is not None:
+        run.add_picture(str(path), width=Cm(width_cm), height=Cm(height_cm))
+    else:
+        run.add_picture(str(path), width=Cm(width_cm))
+    caption = item.get("caption") or (entry.get("image_caption") if total == 1 else "")
+    if caption:
+        caption_para = add_para(caption, size=8.8, color=MUTED, before=0, after=8)
+        caption_para.paragraph_format.keep_together = True
+
+
+def add_snippet(entry):
+    images = _as_image_items(entry)
+    if not images:
+        add_para("原文截图：【找不到截图】", size=9.2, color=AMBER, before=2, after=6)
+        return
+    for index, item in enumerate(images, 1):
+        _add_screenshot(entry, item, index, len(images))
 
 
 def add_page_number_footer(title):

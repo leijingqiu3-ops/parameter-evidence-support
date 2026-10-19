@@ -50,8 +50,10 @@ SI：D:\我的论文\SI.pdf
 - Searches Europe PMC and OpenAlex for candidate primary papers.
 - Verifies DOI/PMID metadata through Crossref and PubMed.
 - Downloads open-access PDFs through OpenAlex, Unpaywall, and Europe PMC.
+- Distinguishes `cloudflare_challenge`, `publisher_verification`, `institutional_access_required`, and transport failures so the user can resume from an authorized browser session.
 - Locates the exact sentence, figure, or table; records PDF page and journal page.
 - Renders a full-page PNG and a highlighted crop of the source passage.
+- Supports multiple screenshots per parameter, height caps, and automatic page breaks that keep each image with its caption.
 - Checks experimental conditions such as species, cell type, assay, probe, construct, salt, and time window.
 - Distinguishes a measurement from a normalized threshold or a code-derived value.
 - Generates a fixed-format Chinese DOCX/PDF with a correction list and explicit `【找不到】` markers.
@@ -128,7 +130,7 @@ A second user can reproduce the same report structure when they have:
 4. the same local PDFs and screenshot files referenced by the spec;
 5. lawful access to the sources.
 
-The builder is deterministic for the entry order, typography, colours, tables, and screenshot treatment. Pagination can vary slightly across Word/LibreOffice versions or if the specified fonts are unavailable.
+The builder is deterministic for the entry order, typography, colours, tables, and screenshot treatment. Screenshot entries accept `images` lists, per-image captions, width and height caps, and `page_break: true | false | auto`. Pagination can vary slightly across Word/LibreOffice versions or if the specified fonts are unavailable, so the exported PDF must still be inspected.
 
 The evidence itself is reproducible only when the source PDF and the quoted page are available. Every entry should keep the local PDF filename and page. If a source is paywalled and the second user has no subscription, the correct result is `【找不到全文】`, not a fabricated screenshot.
 

@@ -118,7 +118,7 @@ Prefer primary research articles with Methods and primary data. Reviews, confere
 python scripts/download_pdf.py 10.1371/journal.pcbi.1000771 --out-dir pdfs --email you@example.org
 ```
 
-The downloader checks OpenAlex, Unpaywall, and Europe PMC, accepts only a response with a valid `%PDF-` header, and reports `【找不到开放获取 PDF】` when no authorized copy is available. For an institutional subscription, use the user's logged-in browser or `nature-downloader` as an optional accelerator. If access is not authorized, stop and mark the source `【找不到全文】`.
+The downloader checks OpenAlex, Unpaywall, and Europe PMC, accepts only a response with a valid `%PDF-` header, and reports `【找不到开放获取 PDF】` when no authorized copy is available. It distinguishes `cloudflare_challenge`, `publisher_verification`, `institutional_access_required`, `rate_limited`, and `transport_error`; verification classes return exit code 4 and require a manual handoff to the user's logged-in browser. For an institutional subscription, use the user's logged-in browser or `nature-downloader` as an optional accelerator. If access is not authorized, stop and mark the source `【找不到全文】`.
 
 ### 5. Locate the exact passage and screenshot it
 
@@ -133,6 +133,8 @@ The locator tolerates line breaks, PDF hyphenation, and different spacing. It wr
 - a cropped PNG with the matched lines highlighted.
 
 Record both the PDF page and the journal page or figure/table number. If the passage spans a page break or the PDF has no text layer, shorten the quote, inspect adjacent pages, or OCR the PDF. Do not infer a screenshot from an abstract.
+
+When one parameter needs more than one original image, use an `images` list in the specification rather than merging unrelated pages manually. Each item accepts `path`, `caption`, `width_cm`, `max_height_cm`, and `page_break`. The builder keeps an image with its caption, caps the image height, and automatically starts a new page for images taller than 9 cm so Word cannot leave an orphan caption.
 
 ### 6. Diagnose and correct
 
@@ -162,7 +164,7 @@ The primary deliverable is a Chinese DOCX plus a PDF preview, using the establis
 
 - A4; Microsoft YaHei plus Cambria; 10.5 pt body;
 - heading colour `#174A6E`; quote block `#F4F8FA`;
-- screenshot width 16.4 cm with caption below;
+- screenshot width 16.4 cm with caption below; maximum height capped at 20 cm; images taller than 9 cm start on a new page unless overridden;
 - footer containing the document title and page number;
 - revision colours: red `#AE3A3A` must change, orange `#915E0F` needs relabelling, green `#236C4D` usable.
 

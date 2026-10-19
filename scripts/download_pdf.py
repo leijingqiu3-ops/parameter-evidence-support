@@ -14,6 +14,7 @@ Exit codes:
     0  PDF downloaded
     2  no authorized open-access PDF found
     3  input not recognized
+    4  publisher verification or institutional session required
 """
 import argparse
 import json
@@ -192,13 +193,60 @@ def europepmc_candidates(identifier, kind):
     return rows, metadata
 
 
+VERIFICATION_CLASSES = {
+    "cloudflare_challenge",
+    "publisher_verification",
+    "institutional_access_required",
+}
+
+
+def classify_non_pdf(status_code, headers, body):
+    code = int(status_code or 0)
+    text = (body or b"")[:16384].decode("utf-8", errors="replace").lower()
+    header_text = str(headers or "").lower()
+    content_type = ""
+    try:
+        content_type = (headers.get("Content-Type") or "").lower()
+    except AttributeError:
+        pass
+    if (
+        "cloudflare" in header_text
+        or "cloudflare" in text
+        or "just a moment" in text
+        or "cf-chl" in text
+        or "challenge-platform" in text
+    ):
+        return (
+            "cloudflare_challenge",
+            f"HTTP {code}: Cloudflare challenge; use an authorized browser session and complete verification manually",
+        )
+    if "captcha" in text or "are you a robot" in text or "verify you are human" in text:
+        return (
+            "publisher_verification",
+            f"HTTP {code}: publisher verification page; complete it manually in the authorized browser",
+        )
+    if code in (401, 403):
+        return (
+            "institutional_access_required",
+            f"HTTP {code}: publisher requires authentication or institutional authorization",
+        )
+    if code == 429:
+        return ("rate_limited", "HTTP 429: publisher rate limit; retry later or use the browser session")
+    if code >= 500:
+        return ("publisher_server_error", f"HTTP {code}: publisher server error")
+    if "text/html" in content_type:
+        return ("response_not_pdf", f"HTTP {code}: publisher returned HTML instead of a PDF")
+    return ("response_not_pdf", f"HTTP {code}: response is not a PDF")
+
+
 def try_download(url, destination):
     req = urllib.request.Request(url, headers=UA)
     try:
         with urllib.request.urlopen(req, timeout=90) as response:
-            head = response.read(8)
+            head = response.read(8192)
             if b"%PDF-" not in head:
-                return False, "response is not a PDF"
+                error_class, detail = classify_non_pdf(response.status, response.headers, head)
+                return False, f"{error_class}: {detail}", error_class
             destination.parent.mkdir(parents=True, exist_ok=True)
             with destination.open("wb") as handle:
                 handle.write(head)
@@ -209,12 +257,17 @@ def try_download(url, destination):
                     handle.write(chunk)
             if destination.stat().st_size < 1000:
                 destination.unlink(missing_ok=True)
-                return False, "downloaded file is too small"
-            return True, str(destination)
+                return False, "response_not_pdf: downloaded file is too small", "response_not_pdf"
+            return True, str(destination), ""
     except urllib.error.HTTPError as exc:
-        return False, f"HTTP {exc.code}"
+        try:
+            body = exc.read(8192)
+        except Exception:
+            body = b""
+        error_class, detail = classify_non_pdf(exc.code, exc.headers, body)
+        return False, f"{error_class}: {detail}", error_class
     except Exception as exc:
-        return False, str(exc)
+        return False, str(exc), "transport_error"
 
 
 def main():
@@ -293,17 +346,30 @@ def main():
 
     errors = []
     for row in rows:
-        ok, message = try_download(row["url"], destination)
+        ok, message, error_class = try_download(row["url"], destination)
         if ok:
             print("downloaded=" + str(destination))
             print(json.dumps({"file": str(destination), "source": row["source"], "url": row["url"], "metadata": metadata}, ensure_ascii=False, indent=2))
             return 0
-        errors.append({"url": row["url"], "source": row["source"], "error": message})
+        errors.append({
+            "url": row["url"],
+            "source": row["source"],
+            "error_class": error_class,
+            "error": message,
+        })
         print(f"[skip] {row['source']}: {message}", file=sys.stderr)
 
-    print("【找不到可用 PDF】All candidate URLs failed; no paywall bypass was attempted.", file=sys.stderr)
+    verification_required = any(item.get("error_class") in VERIFICATION_CLASSES for item in errors)
+    if verification_required:
+        print(
+            "【出版商验证待用户处理】Publisher verification or an institutional session is required. "
+            "Complete it manually in the authorized browser, then rerun this command.",
+            file=sys.stderr,
+        )
+    else:
+        print("【找不到可用 PDF】All candidate URLs failed; no paywall bypass was attempted.", file=sys.stderr)
     print(json.dumps({"errors": errors}, ensure_ascii=False, indent=2), file=sys.stderr)
-    return 2
+    return 4 if verification_required else 2
 
 
 if __name__ == "__main__":

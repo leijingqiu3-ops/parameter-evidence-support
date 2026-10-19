@@ -36,8 +36,15 @@
           "verdict_level": "keep",
           "english": "GATA2 is rapidly turned over, with a reported half-life of 27.7 ± 6.1 min in P815 cells.",
           "local": "Minegishi_2005_GenesCells_GATA2-turnover.pdf, PDF p.2 / journal p.694",
-          "image": "example_screenshot.png",
-          "image_caption": "示例占位图：实际使用时替换为包含原句的原文截图。"
+          "image_width_cm": 16.4,
+          "image_max_height_cm": 20.0,
+          "image_page_break": "auto",
+          "images": [
+            {
+              "path": "example_screenshot.png",
+              "caption": "示例占位图：实际使用时替换为包含原句的原文截图。"
+            }
+          ]
         },
         {
           "heading": "归一化 Hill 阈值 K_G2",
