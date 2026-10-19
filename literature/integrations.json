@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "generated_by": "parameter-evidence-support",
+  "policy": {
+    "bundled": "Only components with a redistributable license are copied into literature/vendor; their original LICENSE files are retained.",
+    "local_adapter": "Components without a verified redistributable license are not copied. The router detects them under the user's Codex skills directory and invokes them in place.",
+    "core_first": "The scripts in scripts/ remain the fallback and the only required execution path."
+  },
+  "skills": [
+    {
+      "name": "nature-downloader",
+      "capability": "Authorized institutional PDF download through the user's logged-in Chrome session",
+      "delivery": "bundled",
+      "path": "literature/vendor/nature-downloader",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 baihe26",
+      "entrypoints": {
+        "skill": "SKILL.md",
+        "configure": "scripts/configure_school.py",
+        "batch": "scripts/batch_download.mjs",
+        "browser": "scripts/browser_pdf_downloader.mjs"
+      },
+      "fallback": "scripts/download_pdf.py"
+    },
+    {
+      "name": "organize-research-literature",
+      "capability": "Recursive inventory and deep review of a local PDF corpus into an Excel workbook",
+      "delivery": "bundled",
+      "path": "literature/vendor/organize-research-literature",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 mao-yifan",
+      "entrypoints": {
+        "skill": "SKILL.md",
+        "main": "scripts/research_literature_excel.py"
+      },
+      "fallback": "Use a supplied PDF list or the core passage/screenshot scripts directly"
+    },
+    {
+      "name": "nature-academic-search",
+      "capability": "Broader multi-source search, citation verification, MeSH strategy, and citation-file conversion through MCP tools",
+      "delivery": "local-adapter",
+      "path": "~/.codex/skills/nature-academic-search",
+      "adapter": "literature/adapters/nature-academic-search.md",
+      "license": "Apache-2.0 upstream; installed copy may omit a LICENSE file",
+      "upstream": "https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-academic-search",
+      "fallback": "scripts/find_papers.py + scripts/verify_refs.py"
+    },
+    {
+      "name": "nature-reader",
+      "capability": "Full-paper Chinese-English, figure/table-aware reading and translation",
+      "delivery": "local-adapter",
+      "path": "~/.codex/skills/nature-reader",
+      "adapter": "literature/adapters/nature-reader.md",
+      "license": "Apache-2.0 upstream; installed copy may omit a LICENSE file",
+      "upstream": "https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-reader",
+      "fallback": "scripts/locate_passage.py for the evidence passage only"
+    },
+    {
+      "name": "nature-citation",
+      "capability": "Segment manuscript text, find Nature/CNS-family support, and export reference-manager files",
+      "delivery": "local-adapter",
+      "path": "~/.codex/skills/nature-citation",
+      "adapter": "literature/adapters/nature-citation.md",
+      "license": "Apache-2.0 upstream; installed copy may omit a LICENSE file",
+      "upstream": "https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-citation",
+      "fallback": "scripts/find_papers.py + scripts/verify_refs.py; manual citation assembly"
+    },
+    {
+      "name": "nature-literature-pipeline",
+      "capability": "Recurring literature discovery, scoring, digest delivery, and archival",
+      "delivery": "local-adapter",
+      "path": "~/.codex/skills/nature-literature-pipeline",
+      "adapter": "literature/adapters/nature-literature-pipeline.md",
+      "license": "Apache-2.0 upstream repository; installed SKILL.md declares MIT",
+      "upstream": "https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-literature-pipeline",
+      "fallback": "Run scripts/find_papers.py manually on a schedule"
+    },
+    {
+      "name": "literature-mapper",
+      "capability": "arXiv + OpenAlex scoping and abstract-level literature mapping with journal/CCF filters",
+      "delivery": "local-adapter",
+      "path": "~/.codex/skills/literature-mapper",
+      "adapter": "literature/adapters/literature-mapper.md",
+      "license": "Custom non-commercial license in the installed README; not bundled",
+      "upstream": "Installed local copy; see its README for the author's terms",
+      "fallback": "scripts/find_papers.py for candidate discovery"
+    },
+    {
+      "name": "zotero-taxonomy-curator",
+      "capability": "Zotero evidence extraction, controlled taxonomy mapping, and Obsidian close-reading notes",
+      "delivery": "local-adapter",
+      "path": "~/.codex/skills/zotero-taxonomy-curator",
+      "adapter": "literature/adapters/zotero-taxonomy-curator.md",
+      "license": "No license file found in the installed copy; not bundled",
+      "upstream": "Installed local copy; inspect its source terms before redistribution",
+      "fallback": "Extract the relevant page with scripts/locate_passage.py and keep notes outside the evidence report"
+    }
+  ]
+}

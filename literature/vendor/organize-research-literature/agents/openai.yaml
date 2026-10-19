@@ -1,0 +1,6 @@
+interface:
+  display_name: "科研文献整理"
+  short_description: "通用 PDF 科研文献整理并写入 Excel 表"
+  default_prompt: "Use $organize-research-literature to scan local PDF papers, apply my research profile, and update the literature summary Excel."
+policy:
+  allow_implicit_invocation: true

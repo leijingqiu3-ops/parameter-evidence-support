@@ -58,8 +58,9 @@ SI：D:\我的论文\SI.pdf
 - Distinguishes a measurement from a normalized threshold or a code-derived value.
 - Generates a fixed-format Chinese DOCX/PDF with a correction list and explicit `【找不到】` markers.
 - Produces manuscript-ready English wording for supported values.
+- Ships an integrated literature stack: a bundled MIT-licensed institutional PDF downloader, a bundled local-corpus organizer, and local adapters for installed search/reader/citation skills.
 
-The core path does **not** require any other Codex skill. Optional integrations are listed below.
+The core path does **not** require any other Codex skill. The bundled tools and local adapters extend it without weakening the evidence standard.
 
 ## Tutorial
 
@@ -69,11 +70,13 @@ The core path does **not** require any other Codex skill. Optional integrations 
 ## Requirements
 
 - Python 3.10 or later
+- Node.js 22 or later for the bundled institutional downloader (optional for the core path)
 - Network access for metadata and open-access PDF lookup
 - Microsoft Word or LibreOffice for PDF export (optional but recommended)
 
 ```bash
 pip install -r requirements.txt
+pip install -r literature/vendor/nature-downloader/requirements.txt
 ```
 
 ## Install
@@ -95,14 +98,22 @@ The skill is loaded from `SKILL.md`.
 ## Quick start
 
 ```bash
+# 0. Check the environment and integrated components
+python scripts/lit_stack.py doctor
+
 # 1. Find candidate papers
-python scripts/find_papers.py "GATA2 half-life P815" --limit 15 --out candidates.csv
+python scripts/lit_stack.py search "GATA2 half-life P815" --limit 15 --out candidates.csv
 
 # 2. Verify DOI/PMID metadata
 python scripts/verify_refs.py 10.1111/j.1365-2443.2005.00864.x 15966900
 
-# 3. Download an open-access PDF
+# 3a. Download an open-access PDF through the core fallback
 python scripts/download_pdf.py 10.1371/journal.pcbi.1000771 --out-dir pdfs --email you@example.org
+
+# 3b. Or use the bundled authorized institutional route
+python scripts/lit_stack.py school preset "上海交通大学"
+python scripts/lit_stack.py school health --force
+python scripts/lit_stack.py download --doi 10.1371/journal.pcbi.1000771 --out-dir pdfs --si
 
 # 4. Locate a verbatim passage and make screenshots
 python scripts/locate_passage.py pdfs/paper.pdf "verbatim sentence" --out-dir shots --page 3
@@ -149,6 +160,13 @@ scripts/verify_refs.py
 scripts/download_pdf.py
 scripts/locate_passage.py
 scripts/build_evidence_docx.py
+scripts/lit_stack.py
+literature/integrations.json
+literature/router.md
+literature/vendor/nature-downloader/
+literature/vendor/organize-research-literature/
+literature/adapters/
+THIRD_PARTY_NOTICES.md
 assets/example_spec.json
 assets/example_screenshot.png
 ```
@@ -163,22 +181,34 @@ assets/example_screenshot.png
 - If a source is unavailable, state exactly what is missing and mark `【找不到】`.
 - Do not bypass paywalls, CAPTCHAs, Cloudflare, or institutional login.
 
-## Optional integrations
+## Integrated literature stack
 
-These are not required for the core path:
+The main skill owns the evidence workflow; the literature layers are tools with explicit fallbacks.
 
-- `nature-academic-search` for broader MCP-based discovery.
-- `nature-downloader` for authorized institutional/browser-session PDF access.
-- `organize-research-literature` for bulk inventory of a large local PDF folder.
-- `nature-reader` for full-paper reading or translation.
+| Layer | Delivery | Use |
+|---|---|---|
+| `nature-downloader` | Bundled, MIT | Open-access-first and authorized institutional/browser-session PDF acquisition |
+| `organize-research-literature` | Bundled, MIT | Recursive local PDF inventory and Excel organization |
+| `nature-academic-search` | Local adapter | Broader MCP-backed search and citation verification |
+| `nature-reader` | Local adapter | Full-paper bilingual reading and figure/table extraction |
+| `nature-citation` | Local adapter | CNS-family citation search and reference-manager export |
+| `nature-literature-pipeline` | Local adapter | Recurring discovery, scoring, digest, and archive |
+| `literature-mapper` | Local adapter | arXiv + OpenAlex title/abstract literature mapping |
+| `zotero-taxonomy-curator` | Local adapter | Zotero-to-Obsidian close-reading notes |
+
+Run `python scripts/lit_stack.py list` to see resolved paths and availability. Routing and failure rules are in `literature/router.md` and `references/literature-stack.md`.
+
+The two bundled components retain their own `LICENSE` files. The local-only adapters are not copied into this repository because their installed copies do not carry a verified redistributable license; see `THIRD_PARTY_NOTICES.md`.
 
 ## Dependencies and licenses
 
 - `python-docx` - MIT
 - `PyMuPDF` - AGPL-3.0 or commercial license
 - `Pillow` - HPND
+- bundled `nature-downloader` - MIT, Copyright (c) 2026 baihe26
+- bundled `organize-research-literature` - MIT, Copyright (c) 2026 mao-yifan
 
-Check dependency licenses before redistributing a modified bundle. This repository does not vendor those libraries and does not include manuscript data or downloaded copyrighted PDFs.
+Check dependency licenses before redistributing a modified bundle. The bundled components retain their original license files; the Python libraries are installed by the user and are not vendored. This repository does not include manuscript data or downloaded copyrighted PDFs.
 
 ## Scope
 

@@ -1,0 +1,493 @@
+organize-research-literature: General Research Literature Organization Skill
+Installation and User Guide
+
+
+1. What Does This Skill Do?
+
+organize-research-literature is a general-purpose research literature organization Skill. It enables Codex to batch-process PDF research papers in a local folder and write bibliographic information, Chinese summaries, relevance assessments, reading priorities, and other content into an existing Excel literature table.
+
+It can be used for any research field. You only need to tell Codex what your current research topic is, which papers count as highly relevant, where the Excel file is located, and where the PDF folder is located.
+
+It is suitable for the following scenarios:
+
+1. Batch-scan PDF literature in a folder.
+2. Process only newly added literature.
+3. Fill in blank cells for literature already listed in Excel.
+4. Organize only highly relevant literature.
+5. Classify literature as highly relevant, moderately relevant, or weakly relevant.
+6. Mark reading priority in column K or another relevance column in Excel.
+7. Sort literature by relevance.
+8. Generate a Chinese literature-review table.
+9. Turn English abstracts or English excerpts into Chinese academic summaries.
+10. Generate a processing log showing which PDFs were processed, skipped, or failed.
+
+
+2. Skill Folder Structure
+
+The complete Skill folder should be named:
+
+organize-research-literature
+
+The folder should contain:
+
+1. SKILL.md
+   The core instruction file for the Skill. Codex reads it to understand how to perform the task.
+
+2. agents/openai.yaml
+   Codex UI metadata that determines how the Skill is displayed in Codex.
+
+3. references/column_schema.md
+   The Excel column structure and write-back rules.
+
+4. references/research_profile_template.md
+   A research-topic profile template used to tell Codex the current research direction, keywords, relevance criteria, and related requirements.
+
+5. scripts/research_literature_excel.py
+   A general-purpose script for recursively scanning PDFs, extracting text, deduplicating records, writing to Excel, generating logs, and marking relevance.
+
+
+3. Installation Method 1: Copy the Folder Directly
+
+If you received the complete organize-research-literature folder, install it as follows.
+
+1. Open Windows File Explorer.
+
+2. Locate the Skill folder, for example:
+
+C:\Users\MYF\Desktop\organize-research-literature
+
+3. Copy the entire organize-research-literature folder to Codex’s skills directory:
+
+C:\Users\YourUsername\.codex\skills\
+
+For example, if your username is MYF, the installed path should be:
+
+C:\Users\MYF\.codex\skills\organize-research-literature
+
+4. After installation, confirm that the following file exists:
+
+C:\Users\YourUsername\.codex\skills\organize-research-literature\SKILL.md
+
+If this file exists, the Skill folder is most likely in the correct location.
+
+
+4. Installation Method 2: Install with PowerShell
+
+If the Skill folder is on your Desktop, open PowerShell and run:
+
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.codex\skills"
+Copy-Item -Path "$env:USERPROFILE\Desktop\organize-research-literature" -Destination "$env:USERPROFILE\.codex\skills" -Recurse -Force
+
+Then verify the installation:
+
+Test-Path "$env:USERPROFILE\.codex\skills\organize-research-literature\SKILL.md"
+
+If the command returns True, the installation was successful.
+
+
+5. Installation Method 3: Install from a ZIP Archive
+
+If you received:
+
+organize-research-literature.zip
+
+You can place it on your Desktop, then open PowerShell and run:
+
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.codex\skills"
+Expand-Archive -Path "$env:USERPROFILE\Desktop\organize-research-literature.zip" -DestinationPath "$env:USERPROFILE\.codex\skills" -Force
+
+Then verify the installation:
+
+Test-Path "$env:USERPROFILE\.codex\skills\organize-research-literature\SKILL.md"
+
+If the command returns True, the installation was successful.
+
+
+6. How to Make Codex Recognize the Skill After Installation
+
+Normally, place the Skill in:
+
+C:\Users\YourUsername\.codex\skills\
+
+Then restart Codex or start a new Codex session. The Skill should then be available.
+
+You can invoke it in a chat like this:
+
+Use $organize-research-literature to organize the PDFs in this folder: C:\Path\To\Your\LiteratureFolder
+
+If Codex does not recognize the Skill, try the following:
+
+1. Confirm that the folder path is correct.
+2. Confirm that SKILL.md is located directly inside the organize-research-literature folder.
+3. Restart Codex.
+4. Do not extract the Skill into a nested directory such as organize-research-literature\organize-research-literature\SKILL.md.
+
+The correct structure should be:
+
+C:\Users\YourUsername\.codex\skills\organize-research-literature\SKILL.md
+
+An incorrect structure would be:
+
+C:\Users\YourUsername\.codex\skills\organize-research-literature\organize-research-literature\SKILL.md
+
+
+7. What You Need to Prepare Before Use
+
+Before using this Skill, it is best to prepare the following three items:
+
+1. A PDF literature folder
+
+For example:
+
+D:\Research Materials\Project Name\Literature
+
+The folder may contain many subfolders. The Skill will recursively scan all PDFs.
+
+2. An Excel literature-summary table
+
+For example:
+
+D:\Research Materials\Project Name\Literature\Literature Summary.xlsx
+
+Excel may use the following column structure:
+
+A  Title
+B  Title Translation
+C  Authors
+D  Source/Journal
+E  Innovation
+F  Full Summary
+G  Research Focus
+H  Research Significance
+I  Research Methods
+J  Notes/Relevance to the Research Topic
+K  Relevance (Reading Priority)
+
+The Excel headers do not need to match these names exactly. The Skill will attempt semantic matching. For example, “Journal,” “Source,” and “Publication” can all be interpreted as the source column.
+
+3. A research-topic profile
+
+This is the most important step. Because this is a general-purpose Skill, it needs to know what “highly relevant” means for your particular research topic.
+
+You can describe this to Codex in natural language, or complete the template file:
+
+references/research_profile_template.md
+
+
+8. What Is a Research-Topic Profile?
+
+A research-topic profile tells Codex:
+
+1. What the current research topic is.
+2. What the current research objective is.
+3. Which objects, materials, equipment, models, and methods are most important.
+4. Which keywords indicate high relevance.
+5. Which keywords indicate moderate relevance.
+6. Which papers are only background references.
+7. Where content should be written in Excel.
+8. Whether relevance should be marked and whether the table should be sorted by relevance.
+
+Example:
+
+Current research topic:
+Measurement of falling-film thickness for water flowing down an inclined transparent glass plate.
+
+Current research objective:
+Use an infrared distance sensor to record changes in the distance to the liquid free surface, convert the measurements into actual liquid-film thickness through calibration, and compare the results with models such as Nusselt and Kapitza.
+
+Highly relevant literature:
+Papers that directly investigate falling films, liquid-film thickness, infrared/laser/optical thickness measurement, liquid-film calibration, flow-regime transitions, the Nusselt model, the Kapitza model, or high-Reynolds-number liquid films.
+
+Moderately relevant literature:
+CFD, wetting, dry patches, correlations, non-water liquids, or other geometric configurations.
+
+Weakly relevant literature:
+Papers that provide only broad background information or whose research objects differ substantially from the current experiment.
+
+
+9. The Simplest Way to Use the Skill
+
+Enter the following directly in Codex:
+
+Use $organize-research-literature to organize the PDFs in this folder: D:\Research Materials\Project Name\Literature. The Excel file is: D:\Research Materials\Project Name\Literature\Literature Summary.xlsx. My current research topic is: [write your topic here]. Please organize the literature only on the basis of readable content in the local PDFs; do not access the internet. Fill in blank cells, add literature that is not yet included, and mark Highly Relevant, Moderately Relevant, or Weakly Relevant in column K.
+
+
+10. Process Only Newly Added Literature
+
+If Excel already contains an organized set of papers and you only want to process PDFs added later, say:
+
+Use $organize-research-literature to process only newly added literature. The PDF folder is D:\Research Materials\Project Name\Literature, and the Excel file is D:\Research Materials\Project Name\Literature\Literature Summary.xlsx. My current research topic is: [write the topic here]. Do not overwrite existing non-empty content. Only add literature that is not yet included, and generate a processing log.
+
+
+11. Organize Only Highly Relevant Literature
+
+If there are too many papers and you want to write the most important ones into Excel first, say:
+
+Use $organize-research-literature to organize only highly relevant papers. My current topic is: [write the topic here]. The criteria for high relevance are: [write the criteria here]. For moderately and weakly relevant papers, write only to the log and do not add them to Excel.
+
+
+12. Fill in Blank Cells Only
+
+If Excel already contains many paper titles and authors but the summary columns are empty, say:
+
+Use $organize-research-literature to fill in blank cells for literature already listed in Excel. Do not add new rows, and do not overwrite existing non-empty human-written summaries. The PDF folder is: [path]. The Excel file is: [path]. My current research topic is: [topic].
+
+
+13. Write Back to the Original Excel File
+
+If you want to update the original Literature Summary.xlsx file directly, say:
+
+Use $organize-research-literature to write the organized results back to the original Excel file: D:\Research Materials\Project Name\Literature\Literature Summary.xlsx. Before writing, create a timestamped backup. Do not overwrite existing non-empty human-written content.
+
+Important:
+Always require Codex to create a backup before writing back to the original Excel file.
+
+
+14. Output to a New Excel File
+
+If you do not want to modify the original Excel file, say:
+
+Use $organize-research-literature to organize the PDFs. The input Excel file is D:\Research Materials\Project Name\Literature\Literature Summary.xlsx. Save the output Excel file as D:\Research Materials\Project Name\Literature\Literature Summary_Completed.xlsx.
+
+
+15. Ask Codex to Sort by Relevance
+
+You can say:
+
+Please mark “Highly Relevant,” “Moderately Relevant,” and “Weakly Relevant” in column K, then sort rows in the order: Highly Relevant, Moderately Relevant, Weakly Relevant, and blank/pending review. When sorting, move the entire row rather than moving only column K.
+
+
+16. Ask Codex to Ensure Chinese Output
+
+If you do not want English abstract fragments to remain in Excel, say:
+
+Please ensure that the following columns are entirely in Chinese: Title Translation, Innovation, Full Summary, Research Focus, Research Significance, Research Methods, and Notes. Do not leave original English abstract sentences, English subheadings, or untranslated paragraphs. After completion, check these columns for any remaining continuous English-word fragments.
+
+
+17. Command-Line Usage
+
+If you want to run the script directly instead of letting Codex decide how to proceed automatically, use:
+
+python scripts\research_literature_excel.py ^
+  --root "D:\Research Materials\Project Name\Literature" ^
+  --input-excel "D:\Research Materials\Project Name\Literature\Literature Summary.xlsx" ^
+  --output-excel "D:\Research Materials\Project Name\Literature\Literature Summary_Completed.xlsx" ^
+  --log-csv "D:\Research Materials\Project Name\Literature\research_literature_processing_log.csv" ^
+  --topic "Write the research topic here" ^
+  --high-keywords "keyword1,keyword2,keyword3" ^
+  --medium-keywords "keyword4,keyword5,keyword6" ^
+  --include-medium-low ^
+  --mark-relevance ^
+  --sort-by-relevance
+
+To write directly back to the original Excel file:
+
+python scripts\research_literature_excel.py ^
+  --root "D:\Research Materials\Project Name\Literature" ^
+  --input-excel "D:\Research Materials\Project Name\Literature\Literature Summary.xlsx" ^
+  --topic "Write the research topic here" ^
+  --high-keywords "keyword1,keyword2,keyword3" ^
+  --medium-keywords "keyword4,keyword5,keyword6" ^
+  --include-medium-low ^
+  --mark-relevance ^
+  --sort-by-relevance ^
+  --in-place
+
+
+18. Explanation of Common Script Parameters
+
+--root
+The root directory of the PDF literature. The script recursively scans all PDFs within it.
+
+--input-excel
+An existing Excel literature-summary table.
+
+--output-excel
+The output Excel path. If you are not using --in-place, this parameter is recommended.
+
+--log-csv
+The processing-log path.
+
+--profile
+The path to the research-topic profile file.
+
+--topic
+The name of the current research topic.
+
+--high-keywords
+High-relevance keywords, separated by English commas or Chinese commas.
+
+--medium-keywords
+Moderate-relevance keywords.
+
+--only-new
+Process only newly added literature; do not fill in blanks for existing records.
+
+--fill-blanks-only
+Fill in blanks for existing literature only; do not add new rows.
+
+--high-only
+Add only highly relevant literature.
+
+--include-medium-low
+Allow moderately and weakly relevant literature to be written to Excel as well.
+
+--mark-relevance
+Write relevance labels.
+
+--sort-by-relevance
+Sort by relevance.
+
+--in-place
+Write directly back to input-excel. When this parameter is used, the script creates a backup.
+
+
+19. Standard Prompt for Sharing This Skill with Others
+
+You can copy the following text directly and send it to others:
+
+Please use $organize-research-literature to organize my local PDF literature. Requirements:
+
+1. Process only PDF files; do not process other file types.
+2. Do not access the internet or download external materials.
+3. Summarize only on the basis of readable content in local PDFs; do not fabricate content based on file names.
+4. Recursively scan this folder: [enter the PDF folder path here].
+5. Excel file: [enter the path to Literature Summary.xlsx here].
+6. Back up Excel before writing any content.
+7. My current research topic is: [enter the research topic here].
+8. High-relevance criteria: [enter the high-relevance criteria here].
+9. Moderate-relevance criteria: [enter the moderate-relevance criteria here].
+10. Weak-relevance criteria: [enter the weak-relevance criteria here].
+11. For existing literature, fill only blank cells and do not overwrite existing non-empty human-written content.
+12. Append new literature to the end of the table.
+13. Mark “Highly Relevant,” “Moderately Relevant,” and “Weakly Relevant” in column K.
+14. Sort in the order: Highly Relevant, Moderately Relevant, Weakly Relevant, and blank/pending review.
+15. The Title Translation, Innovation, Full Summary, Research Focus, Research Significance, Research Methods, and Notes columns must be in Chinese.
+16. After completion, generate a processing log and report the numbers of added, updated, skipped, duplicate, and unreadable files.
+
+
+20. How to Adapt It for Different Research Topics
+
+You only need to change the research-topic profile; there is no need to change the Skill itself.
+
+For example, if Topic 1 is liquid-film thickness measurement:
+High-relevance keywords may include: falling film, liquid film thickness, infrared, laser, calibration, Reynolds number, Nusselt.
+
+If Topic 2 is lithium-ion battery thermal runaway:
+High-relevance keywords may include: lithium-ion battery, thermal runaway, heat generation, safety, abuse test, battery pack, thermal propagation.
+
+If Topic 3 is membrane fouling in wastewater treatment:
+High-relevance keywords may include: membrane fouling, wastewater treatment, ultrafiltration, biofilm, flux decline, cleaning, transmembrane pressure.
+
+If Topic 4 is machine learning for medical imaging:
+High-relevance keywords may include: medical imaging, deep learning, segmentation, diagnosis, MRI, CT, ultrasound, validation, clinical dataset.
+
+The Skill remains unchanged; only the keywords and research objective need to be changed.
+
+
+21. Most Important Usage Notes
+
+1. Do not let Codex guess paper content from file names.
+2. Always provide the current research topic; otherwise, relevance assessments will be too broad.
+3. For a doctoral topic or an important review, it is recommended to request “deep reading mode.”
+4. If Excel already contains human-written summaries, explicitly state: “Do not overwrite existing non-empty content.”
+5. If writing back to the original Excel file, explicitly state: “Create a backup first.”
+6. If there are many scanned PDFs, do not perform batch OCR unless it is truly necessary.
+7. Do not force low-relevance papers to provide experimental implications.
+8. For highly relevant papers, ask for “transferable methods, specific implications, and concrete next actions.”
+9. After completion, always ask Codex to reopen Excel and verify the result.
+10. Require a CSV processing log so that failed and skipped files can be checked manually.
+
+
+22. Frequently Asked Questions
+
+Question 1: Codex does not recognize $organize-research-literature.
+
+Check whether the path is:
+
+C:\Users\YourUsername\.codex\skills\organize-research-literature\SKILL.md
+
+If not, copy the folder again.
+
+Question 2: Excel is in use, causing a save failure.
+
+Close the Excel file that is currently open, then have Codex run the task again.
+
+Question 3: Some PDFs were not written to Excel.
+
+Possible reasons:
+
+1. The PDF is damaged.
+2. The PDF is scanned and text cannot be extracted.
+3. The PDF is not a standalone paper.
+4. Its title duplicates an existing title in Excel.
+5. It was identified as a possible duplicate and requires manual review.
+
+You can check the log:
+
+research_literature_processing_log.csv
+
+Question 4: The summaries are too generic.
+
+Add the following to the prompt:
+
+Please enter deep reading mode. You must extract the experimental conditions, methods, models, core results, quantitative parameters, limitations, and specific implications for the current research topic.
+
+Question 5: The relevance assessments are inaccurate.
+
+Usually, the research-topic profile is not clear enough. Add:
+
+1. What the current topic actually focuses on.
+2. Which methods and models are most important.
+3. Which keywords indicate high relevance.
+4. Which content is only background.
+5. Which papers should not be mistakenly judged as highly relevant.
+
+
+23. Recommended Workflow
+
+First-time use:
+
+1. Prepare the PDF literature folder.
+2. Prepare Literature Summary.xlsx.
+3. Clearly define the research-topic profile.
+4. Ask Codex to perform a dry run or test a small number of papers first.
+5. Check whether the Excel output meets expectations.
+6. Then run the full collection.
+
+Adding literature later:
+
+1. Put new PDFs into the same folder.
+2. Tell Codex: “Process only newly added literature.”
+3. Generate the log and check the number of added records.
+
+Before writing a literature review:
+
+1. Ask Codex to sort by high relevance.
+2. Ask Codex to list the 5–10 papers that are most worth reading in depth.
+3. Read each highly relevant paper in depth.
+4. Extract experimental design, model comparisons, and paper-writing implications from the notes in column J.
+
+
+24. Which Files Should Be Sent When Delivering This Skill to Others?
+
+It is recommended to send either:
+
+1. The organize-research-literature folder
+
+or:
+
+2. organize-research-literature.zip
+
+For installation, the recipient only needs to place the entire folder in:
+
+C:\Users\RecipientUsername\.codex\skills\
+
+Then restart Codex.
+
+
+25. One-Sentence Summary
+
+The core use of this Skill is:
+
+Keep the “general literature-organization rules” fixed in the Skill, and write the “differences specific to each research topic” into the research-topic profile. When changing topics later, there is no need to rewrite the entire set of rules; only the paths, Excel file, keywords, and high/moderate/weak relevance criteria need to be changed.

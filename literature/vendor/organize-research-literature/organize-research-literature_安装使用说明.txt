@@ -1,0 +1,468 @@
+《organize-research-literature 通用科研文献整理 Skill 安装与使用说明》
+
+一、这个 Skill 是做什么的
+
+organize-research-literature 是一个通用科研文献整理 Skill，用于让 Codex 批量整理本地文件夹中的 PDF 科研论文，并把文献信息、中文总结、相关度判断、阅读优先级等内容写入已有 Excel 文献表中。
+
+它用于任何研究方向。使用时只需要告诉 Codex 当前研究课题是什么、哪些文献算强相关、Excel 在哪里、PDF 文件夹在哪里即可。
+
+它适合这些场景：
+
+1. 批量扫描某个文件夹中的 PDF 文献。
+2. 只处理新增文献。
+3. 补全 Excel 中已有文献的空白单元格。
+4. 只整理强相关文献。
+5. 对文献进行强相关、中等相关、弱相关分类。
+6. 在 Excel 的 K 列或相关度列中标记阅读优先级。
+7. 按相关度排序。
+8. 生成中文文献综述表。
+9. 将英文摘要或英文片段整理成中文学术总结。
+10. 生成处理日志，记录哪些 PDF 被处理、跳过或失败。
+
+二、Skill 文件夹结构
+
+完整 Skill 文件夹名称为：
+
+organize-research-literature
+
+文件夹中应包含：
+
+1. SKILL.md
+   Skill 的核心说明文件，Codex 会读取它来理解如何执行任务。
+
+2. agents/openai.yaml
+   Codex UI 元数据，决定 Skill 在 Codex 中如何显示。
+
+3. references/column_schema.md
+   Excel 列结构和写入规则。
+
+4. references/research_profile_template.md
+   研究课题画像模板，用来告诉 Codex 当前研究方向、关键词、相关度判断标准等。
+
+5. scripts/research_literature_excel.py
+   通用脚本，用于递归扫描 PDF、提取文本、去重、写入 Excel、生成日志和标记相关度。
+
+三、安装方式一：直接复制文件夹安装
+
+如果你拿到的是完整文件夹 organize-research-literature，请按下面步骤安装。
+
+1. 打开 Windows 文件资源管理器。
+
+2. 找到 Skill 文件夹，例如：
+
+C:\Users\MYF\Desktop\organize-research-literature
+
+3. 将整个 organize-research-literature 文件夹复制到 Codex 的 skills 目录：
+
+C:\Users\你的用户名\.codex\skills\
+
+例如，如果用户名是 MYF，安装后的路径应为：
+
+C:\Users\MYF\.codex\skills\organize-research-literature
+
+4. 安装完成后，确认存在以下文件：
+
+C:\Users\你的用户名\.codex\skills\organize-research-literature\SKILL.md
+
+如果这个文件存在，说明 Skill 文件夹位置基本正确。
+
+四、安装方式二：使用 PowerShell 命令安装
+
+如果 Skill 文件夹在桌面，可以打开 PowerShell，执行：
+
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.codex\skills"
+Copy-Item -Path "$env:USERPROFILE\Desktop\organize-research-literature" -Destination "$env:USERPROFILE\.codex\skills" -Recurse -Force
+
+安装后检查：
+
+Test-Path "$env:USERPROFILE\.codex\skills\organize-research-literature\SKILL.md"
+
+如果返回 True，说明安装成功。
+
+五、安装方式三：从 zip 压缩包安装
+
+如果你拿到的是：
+
+organize-research-literature.zip
+
+可以把它放在桌面，然后打开 PowerShell 执行：
+
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.codex\skills"
+Expand-Archive -Path "$env:USERPROFILE\Desktop\organize-research-literature.zip" -DestinationPath "$env:USERPROFILE\.codex\skills" -Force
+
+安装后检查：
+
+Test-Path "$env:USERPROFILE\.codex\skills\organize-research-literature\SKILL.md"
+
+如果返回 True，说明安装成功。
+
+六、安装后如何让 Codex 识别
+
+一般情况下，将 Skill 放入：
+
+C:\Users\你的用户名\.codex\skills\
+
+之后，重新打开 Codex 或新建一个 Codex 会话，就可以使用。
+
+在对话中可以这样调用：
+
+用 $organize-research-literature 整理这个文件夹里的 PDF，路径是 C:\你的文献文件夹
+
+如果 Codex 没有识别到 Skill，可以尝试：
+
+1. 确认文件夹路径是否正确。
+2. 确认 SKILL.md 是否在 organize-research-literature 文件夹第一层。
+3. 重新打开 Codex。
+4. 不要把 Skill 解压成 organize-research-literature\organize-research-literature\SKILL.md 这种双层目录。
+
+正确结构应该是：
+
+C:\Users\你的用户名\.codex\skills\organize-research-literature\SKILL.md
+
+错误结构示例：
+
+C:\Users\你的用户名\.codex\skills\organize-research-literature\organize-research-literature\SKILL.md
+
+七、使用前需要准备什么
+
+使用这个 Skill 前，最好准备三类东西：
+
+1. PDF 文献文件夹
+
+例如：
+
+D:\研究资料\某某课题\文献
+
+里面可以有很多子文件夹，Skill 会递归扫描全部 PDF。
+
+2. Excel 文献总结表
+
+例如：
+
+D:\研究资料\某某课题\文献\论文总结.xlsx
+
+Excel 可以使用以下列结构：
+
+A 标题
+B 标题翻译
+C 作者
+D 来源/期刊
+E 创新点
+F 全文概要
+G 研究重点
+H 研究意义
+I 研究方法
+J 备注/与课题关联
+K 相关度（阅读优先级）
+
+如果你的 Excel 表头不完全一样，也可以使用。Skill 会尽量按语义匹配，例如“期刊”“来源”“Journal”都可以理解为来源列。
+
+3. 研究课题画像
+
+这是最重要的一步。因为这个 Skill 是通用版，它需要知道“对你的课题来说，什么叫强相关”。
+
+可以用自然语言告诉 Codex，也可以填写模板文件：
+
+references/research_profile_template.md
+
+八、什么是研究课题画像
+
+研究课题画像就是告诉 Codex：
+
+1. 当前研究课题是什么。
+2. 当前研究目标是什么。
+3. 哪些对象、材料、设备、模型、方法最重要。
+4. 哪些关键词代表强相关。
+5. 哪些关键词代表中等相关。
+6. 哪些文献只是背景。
+7. Excel 应该写到哪里。
+8. 是否要标相关度、是否按相关度排序。
+
+示例：
+
+当前研究课题：
+倾斜透明玻璃板上的水降膜液膜厚度测量。
+
+当前研究目标：
+使用红外距离传感器记录液膜自由表面距离变化，通过标定转换为真实液膜厚度，并与 Nusselt、Kapitza 等模型比较。
+
+强相关文献：
+直接研究降膜、液膜厚度、红外/激光/光学测厚、液膜标定、流型转变、Nusselt 模型、Kapitza 模型、高 Re 数液膜。
+
+中等相关文献：
+CFD、润湿、干斑、相关式、非水液体或其他几何结构。
+
+弱相关文献：
+只提供宽泛背景，或研究对象和当前实验差异很大。
+
+九、最简单的使用方式
+
+在 Codex 中直接输入：
+
+用 $organize-research-literature 整理这个文件夹中的 PDF，路径是 D:\研究资料\某某课题\文献，Excel 是 D:\研究资料\某某课题\文献\论文总结.xlsx。当前研究课题是：这里写你的课题。请只根据本地 PDF 内容整理，不要联网。请补全空白单元格，新增未收录文献，并在 K 列标记强相关、中等相关、弱相关。
+
+十、只处理新增文献
+
+如果 Excel 已经整理过一批文献，只想处理后来新增的 PDF，可以说：
+
+用 $organize-research-literature 只处理新增文献。PDF 文件夹是 D:\研究资料\某某课题\文献，Excel 是 D:\研究资料\某某课题\文献\论文总结.xlsx。当前研究课题是：……。请不要覆盖已有非空内容，只新增未收录文献，并生成日志。
+
+十一、只整理强相关文献
+
+如果文献太多，只想把最重要的先写入 Excel，可以说：
+
+用 $organize-research-literature 只整理强相关论文。当前课题是：……。强相关标准是：……。中等和弱相关只写入日志，不新增到 Excel。
+
+十二、只补全空白单元格
+
+如果 Excel 中已经有很多标题和作者，但总结列空着，可以说：
+
+用 $organize-research-literature 补全 Excel 中已有文献的空白单元格。不要新增新行，不要覆盖已有非空人工总结。PDF 文件夹是……，Excel 是……，当前研究课题是……。
+
+十三、写回原 Excel
+
+如果希望直接更新原来的论文总结.xlsx，可以说：
+
+用 $organize-research-literature 将整理结果写回原 Excel：D:\研究资料\某某课题\文献\论文总结.xlsx。写入前请先生成时间戳备份，不要覆盖已有非空人工内容。
+
+注意：
+写回原 Excel 前一定要要求 Codex 生成备份。
+
+十四、输出到新 Excel
+
+如果不想动原始 Excel，可以说：
+
+用 $organize-research-literature 整理 PDF，输入 Excel 是 D:\研究资料\某某课题\文献\论文总结.xlsx，输出 Excel 保存为 D:\研究资料\某某课题\文献\论文总结_整理完成.xlsx。
+
+十五、让 Codex 按相关度排序
+
+可以说：
+
+请在 K 列标记“强相关”“中等相关”“弱相关”，并按强相关、中等相关、弱相关、空白待复核的顺序排序。排序时必须移动整行，不要只移动 K 列。
+
+十六、让 Codex 确保中文输出
+
+如果 Excel 里不希望出现英文摘要残留，可以说：
+
+请确保“标题翻译、创新点、全文概要、研究重点、研究意义、研究方法、备注”这些列全部为中文，不要留下英文摘要原句、英文小标题或未翻译段落。完成后请检查这些列中是否还有连续英文单词残留。
+
+十七、命令行使用方式
+
+如果想直接运行脚本，而不是让 Codex 自动决定，可以使用：
+
+python scripts\research_literature_excel.py ^
+  --root "D:\研究资料\某某课题\文献" ^
+  --input-excel "D:\研究资料\某某课题\文献\论文总结.xlsx" ^
+  --output-excel "D:\研究资料\某某课题\文献\论文总结_整理完成.xlsx" ^
+  --log-csv "D:\研究资料\某某课题\文献\research_literature_processing_log.csv" ^
+  --topic "这里写研究课题" ^
+  --high-keywords "关键词1,关键词2,关键词3" ^
+  --medium-keywords "关键词4,关键词5,关键词6" ^
+  --include-medium-low ^
+  --mark-relevance ^
+  --sort-by-relevance
+
+如果要直接写回原 Excel：
+
+python scripts\research_literature_excel.py ^
+  --root "D:\研究资料\某某课题\文献" ^
+  --input-excel "D:\研究资料\某某课题\文献\论文总结.xlsx" ^
+  --topic "这里写研究课题" ^
+  --high-keywords "关键词1,关键词2,关键词3" ^
+  --medium-keywords "关键词4,关键词5,关键词6" ^
+  --include-medium-low ^
+  --mark-relevance ^
+  --sort-by-relevance ^
+  --in-place
+
+十八、常用脚本参数解释
+
+--root
+PDF 文献根目录。脚本会递归扫描其中所有 PDF。
+
+--input-excel
+已有 Excel 文献总结表。
+
+--output-excel
+输出 Excel 路径。如果不用 --in-place，建议指定这个参数。
+
+--log-csv
+处理日志路径。
+
+--profile
+研究课题画像文件路径。
+
+--topic
+当前研究课题名称。
+
+--high-keywords
+强相关关键词，用英文逗号或中文逗号分隔。
+
+--medium-keywords
+中等相关关键词。
+
+--only-new
+只处理新增文献，不补全已有文献空白。
+
+--fill-blanks-only
+只补全已有文献空白，不新增行。
+
+--high-only
+只新增强相关文献。
+
+--include-medium-low
+中等相关和弱相关也允许写入 Excel。
+
+--mark-relevance
+写入相关度标签。
+
+--sort-by-relevance
+按相关度排序。
+
+--in-place
+直接写回 input-excel。使用这个参数时，脚本会生成备份。
+
+十九、推荐给别人使用时的标准提示词
+
+可以把下面这段直接复制给别人：
+
+请使用 $organize-research-literature 整理我的本地 PDF 文献。要求如下：
+
+1. 只处理 PDF，不处理其他文件。
+2. 不联网，不下载外部资料。
+3. 只依据本地 PDF 中可读取内容总结，不根据文件名编造。
+4. 递归扫描文件夹：这里填写 PDF 文件夹路径。
+5. Excel 文件：这里填写论文总结.xlsx 路径。
+6. 请先备份 Excel，再写入。
+7. 当前研究课题是：这里填写研究课题。
+8. 强相关标准是：这里填写强相关标准。
+9. 中等相关标准是：这里填写中等相关标准。
+10. 弱相关标准是：这里填写弱相关标准。
+11. 对已有文献只补全空白单元格，不覆盖已有非空人工内容。
+12. 新文献追加到最后。
+13. 在 K 列标记“强相关”“中等相关”“弱相关”。
+14. 按强相关、中等相关、弱相关、空白待复核排序。
+15. 标题翻译、创新点、全文概要、研究重点、研究意义、研究方法、备注必须使用中文。
+16. 完成后生成处理日志，并报告新增、更新、跳过、重复、无法读取的数量。
+
+二十、给不同研究课题使用时怎么改
+
+只需要改研究画像，不需要改 Skill 本身。
+
+例如，课题一是液膜测厚：
+强相关关键词可以是：falling film, liquid film thickness, infrared, laser, calibration, Reynolds number, Nusselt。
+
+课题二是锂电池热失控：
+强相关关键词可以是：lithium-ion battery, thermal runaway, heat generation, safety, abuse test, battery pack, thermal propagation。
+
+课题三是污水处理膜污染：
+强相关关键词可以是：membrane fouling, wastewater treatment, ultrafiltration, biofilm, flux decline, cleaning, transmembrane pressure。
+
+课题四是机器学习医学影像：
+强相关关键词可以是：medical imaging, deep learning, segmentation, diagnosis, MRI, CT, ultrasound, validation, clinical dataset。
+
+Skill 不变，改关键词和研究目标即可。
+
+二十一、使用时最重要的注意事项
+
+1. 不要让 Codex 根据文件名猜论文内容。
+2. 一定要提供当前研究课题，否则相关度判断会很粗。
+3. 如果是博士课题或重要综述，建议要求“深度精读模式”。
+4. 如果 Excel 里已有人工总结，要明确说“不要覆盖已有非空内容”。
+5. 如果写回原 Excel，要明确说“先备份”。
+6. 如果有很多扫描版 PDF，不建议批量 OCR，除非确实必要。
+7. 低相关论文不要强行写实验启示。
+8. 对强相关论文，要要求写“可借鉴方法、具体启示、后续可执行动作”。
+9. 完成后一定要求重新打开 Excel 验证。
+10. 要求生成日志 CSV，方便人工检查失败和跳过的文件。
+
+二十二、常见问题
+
+问题一：Codex 没识别到 $organize-research-literature。
+
+检查路径是否为：
+
+C:\Users\你的用户名\.codex\skills\organize-research-literature\SKILL.md
+
+如果不是，重新复制文件夹。
+
+问题二：Excel 被占用导致保存失败。
+
+关闭正在打开的 Excel 文件，再让 Codex 重新运行。
+
+问题三：有些 PDF 没有写入 Excel。
+
+可能原因：
+
+1. PDF 损坏。
+2. PDF 是扫描版，无法提取文本。
+3. PDF 不是独立论文。
+4. 与 Excel 中已有标题重复。
+5. 被判断为疑似重复，需要人工检查。
+
+可以查看日志：
+
+research_literature_processing_log.csv
+
+问题四：总结太泛泛。
+
+在提示词中增加：
+
+请进入深度精读模式，必须提取实验条件、方法、模型、核心结果、定量参数、局限性和对当前课题的具体启示。
+
+问题五：相关度判断不准。
+
+通常是研究画像写得不够清楚。需要补充：
+
+1. 当前课题真正关注什么。
+2. 哪些方法和模型最重要。
+3. 哪些关键词代表强相关。
+4. 哪些内容只是背景。
+5. 哪些文献不应误判为强相关。
+
+二十三、推荐工作流
+
+第一次使用：
+
+1. 准备 PDF 文件夹。
+2. 准备论文总结.xlsx。
+3. 写清楚研究课题画像。
+4. 先让 Codex dry-run 或先处理少量文献测试。
+5. 检查 Excel 输出是否符合预期。
+6. 再全量运行。
+
+后续追加文献：
+
+1. 把新 PDF 放入同一文件夹。
+2. 对 Codex 说“只处理新增文献”。
+3. 生成日志并检查新增数量。
+
+写综述前：
+
+1. 让 Codex 按强相关排序。
+2. 让 Codex列出最值得精读的 5-10 篇文献。
+3. 对强相关论文逐篇精读。
+4. 从 J 列备注中提取实验设计、模型比较和论文写作启示。
+
+二十四、给别人交付时应该发哪些文件
+
+建议直接发送：
+
+1. organize-research-literature 文件夹
+
+或：
+
+2. organize-research-literature.zip
+
+对方安装时只需要把整个文件夹放到：
+
+C:\Users\对方用户名\.codex\skills\
+
+然后重新打开 Codex 即可。
+
+二十五、一句话总结
+
+这个 Skill 的核心用法是：
+
+把“通用文献整理规则”固定在 Skill 中，把“具体研究课题差异”写进研究画像。以后换课题时，不需要重写整套规则，只需要改路径、Excel、关键词和强中弱相关标准。
+
