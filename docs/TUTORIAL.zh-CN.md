@@ -1,21 +1,35 @@
-# 参数文献支撑：完整使用与复现教程
+# 怎么使用 parameter-evidence-support（小白版）
 
-这份教程面向两类使用者：
+这是一个 Codex 技能的使用说明。
 
-1. **直接运行脚本的人**：不安装 Codex 技能，也能按命令生成同样的 Word；
-2. **在 Codex 中调用技能的人**：把本目录放进 `.codex/skills/`，用自然语言启动整个流程。
-
-最终产物是一份中文 Word：每个参数都有分级、文献、页码、英文原句、中文核对、核验结论、可粘贴英文、本地 PDF 和原文截图。找不到的项目明确写 `【找不到】`。
+你不需要自己跑命令，也不需要懂 Python。你只需要把正文、SI 和输出位置告诉 Codex，再说一句明确的指令，剩下的检索、核验、截图和 Word 生成由技能完成。
 
 ---
 
-## 小白版：直接照做
+## 这个技能帮你做什么
 
-如果你不想看后面的技术细节，只按这五步做。
+你给它：
 
-### 第 1 步：准备文件
+- 论文正文；
+- SI（补充材料）；
+- 一个输出文件夹。
 
-把正文和 SI 放在同一个文件夹，最好都是 PDF：
+它帮你：
+
+1. 从正文和 SI 中提取全部参数；
+2. 判断每个参数是实测值、换算值、模型设定，还是找不到；
+3. 找原始文献，核验 DOI/PMID；
+4. 下载有权限的 PDF；
+5. 找到文献中真正提到这个参数的句子、图或表；
+6. 截取原文截图；
+7. 按固定格式生成中文 Word；
+8. 把找不到的内容明确写成 `【找不到】` 或 `【找不到全文】`。
+
+---
+
+## 第 1 步：准备文件
+
+最好准备：
 
 ```text
 D:\我的论文\
@@ -23,21 +37,39 @@ D:\我的论文\
 └─ SI.pdf
 ```
 
-如果只有 Word 文件也可以。没有参数表也没关系，技能会先从正文和 SI 中提取。
+Word 文件也可以。没有单独的参数表也没关系，技能会先从正文和 SI 中提取。
 
-### 第 2 步：安装技能
+建议再准备一个空文件夹：
 
-把本仓库放到 Codex 的技能目录：
+```text
+D:\参数核验\
+```
+
+如果某篇文献你已经有 PDF，也可以放进一个本地文件夹，技能会优先使用。
+
+---
+
+## 第 2 步：确认技能已经安装
+
+把整个 `parameter-evidence-support` 文件夹放到：
 
 ```text
 C:\Users\<你的用户名>\.codex\skills\parameter-evidence-support
 ```
 
-然后在 Codex 中确认能看到 `parameter-evidence-support`。
+如果你已经能在 Codex 中看到这个技能，可以跳过这一步。
 
-### 第 3 步：复制这句话
+不确定时，直接问 Codex：
 
-把下面整段发给 Codex：
+```text
+你现在可以使用 parameter-evidence-support 技能吗？
+```
+
+---
+
+## 第 3 步：复制这段指令
+
+把下面整段发给 Codex，只替换三个路径：
 
 ```text
 使用 parameter-evidence-support 技能，核对我正文和 SI 的全部参数，
@@ -51,394 +83,144 @@ SI：D:\我的论文\SI.pdf
 如果某篇文献没有访问权限，不要绕过付费墙，直接标【找不到全文】。
 ```
 
-只需要把三个路径换成你自己的。不要删掉“找不到的写【找不到】”和“不要绕过付费墙”这两句。
+这段话已经足够启动任务。
 
-### 第 4 步：等技能工作
-
-它会先读正文和 SI，然后逐条找文献。中途可能需要你确认：
-
-- 某篇论文是不是你说的那一篇；
-- 某个参数是不是模型设定而不是实验值；
-- 某个 PDF 是否需要你登录学校账号下载。
-
-如果它问你问题，直接回答即可。没有权限的文献，它会留空并写 `【找不到全文】`，不会伪造。
-
-### 第 5 步：检查结果
-
-重点看：
-
-1. Word 是否每个参数都有条目；
-2. 实测值是否有页码、英文原句和截图；
-3. 模型设定是否明确写成“模型/代码设定”；
-4. `【找不到】` 是否说明了缺什么；
-5. 修订清单里的红色项是否都处理了。
-
-详细原理、命令和排错方法继续看下面。
-
-## 0. 最短复现路径
-
-如果你只想确认这套东西能跑，先执行：
-
-```bash
-git clone https://github.com/leijingqiu3-ops/parameter-evidence-support.git
-cd parameter-evidence-support
-pip install -r requirements.txt
-python scripts/build_evidence_docx.py assets/example_spec.json example_report.docx
-```
-
-成功时会生成 `example_report.docx`，包含 2 个示例条目和 1 张示例截图。
-
-> Windows 上如果 `python` 不在 PATH，请使用你的实际解释器，例如 `py -3` 或 `C:\path\to\python.exe`。
->
-> macOS/Linux 通常使用 `python3`。
-
----
-
-## 1. 安装
-
-### 1.1 作为普通脚本使用
-
-只需要 Python 3.10 或更高版本：
-
-```bash
-python --version
-pip install -r requirements.txt
-```
-
-依赖：
-
-- `python-docx`：生成 DOCX；
-- `PyMuPDF`：读取 PDF、定位原句、渲染截图；
-- `Pillow`：给截图加高亮和裁切。
-
-### 1.2 作为 Codex 技能使用
-
-把整个目录放到：
+如果你不想一次给完整路径，也可以先发：
 
 ```text
-~/.codex/skills/parameter-evidence-support
-```
-
-Windows 示例：
-
-```text
-C:\Users\<你的用户名>\.codex\skills\parameter-evidence-support
-```
-
-技能入口是 `SKILL.md`。安装后在 Codex 中可以直接说：
-
-```text
-使用 parameter-evidence-support，核对我正文和 SI 的全部参数。
-找原始文献、下载 PDF、定位原文并截图，按固定格式生成 Word。
+使用 parameter-evidence-support 技能，核对我正文和 SI 的全部参数，
+找原始文献、下载 PDF、截取原文，按固定格式生成 Word；
 找不到的写【找不到】。
 ```
 
+Codex 会再问你正文、SI 和输出目录在哪里。
+
 ---
 
-## 2. 建立工作目录
+## 第 4 步：回答它的追问
 
-建议把输入、PDF、截图和输出分开：
+技能在核对时可能会问你：
+
+- “这个数值是实验测量，还是模型设定？”
+- “这篇论文是不是你说的那一篇？”
+- “这个 PDF 要不要用学校账号下载？”
+- “这个参数找不到原始文献，是否保留并标 `【找不到】`？”
+- “这一个是归一化阈值，还是摩尔 Kd？”
+
+你不需要写正式答案，直接说清楚即可，例如：
 
 ```text
-my-parameter-audit/
-├─ 00_input/
-│  ├─ manuscript.pdf
-│  ├─ SI.pdf
-│  └─ parameters.csv
-├─ 01_pdfs/
-├─ 02_shots/
-├─ 03_output/
-├─ candidates.csv
-└─ spec.json
+这个是模型设定，不是实验值。
 ```
-
-Windows PowerShell：
-
-```powershell
-New-Item -ItemType Directory -Force 00_input,01_pdfs,02_shots,03_output
-```
-
-macOS/Linux：
-
-```bash
-mkdir -p 00_input 01_pdfs 02_shots 03_output
-```
-
----
-
-## 3. 建立参数清单
-
-先读正文和 SI，把每个数值列出来。建议用 CSV：
-
-```csv
-id,parameter,value,unit,equation,claim_type,current_citation
-1,GATA2 half-life,27.7 ± 6.1,min,mu_G2 = ln2/t_half,measured,Minegishi 2005
-2,K_G2 norm,0.30,dimensionless,Eq.(1),model_set,HSC SI
-3,PU.1 Kd,7.1 ± 0.2,nM,Hill function,measured,Munde 2013
-```
-
-`claim_type` 至少区分：
-
-- `measured`：原始论文直接测量；
-- `derived`：由实验值换算；
-- `model_set`：模型、归一化、扫描范围或代码常数；
-- `unknown`：暂时找不到。
-
-注意：参数核验和数据导入是两个任务。除非用户明确要求，不要把 GEO 矩阵维度、细胞数、伪时间等混进参数报告。
-
----
-
-## 4. 找候选文献
-
-```bash
-python scripts/find_papers.py "GATA2 half-life P815 cycloheximide" --limit 15 --year-from 1990 --out candidates.csv
-```
-
-输出 CSV 包含标题、作者、期刊、年份、DOI、PMID、引用数和链接。脚本按引用数排序，但**引用数不是证据**，必须人工筛选。
-
-优先顺序：
-
-1. 原始研究论文，含 Methods 和原始数据；
-2. 同一细胞类型、同一实验体系的论文；
-3. 综述只作为线索，不作为“实测值”的来源；
-4. 会议摘要必须标注 `abstract`。
-
-找到 DOI/PMID 后核验元数据：
-
-```bash
-python scripts/verify_refs.py 10.1111/j.1365-2443.2005.00864.x 15966900
-```
-
-检查标题、作者、期刊、卷期、页码是否与你要引用的论文一致。一个 DOI 能打开，不代表它包含你声称的数值。
-
----
-
-## 5. 下载 PDF
-
-### 5.1 自动下载开放获取版本
-
-```bash
-python scripts/download_pdf.py 10.1371/journal.pcbi.1000771 --out-dir 01_pdfs --email you@example.org
-```
-
-脚本会查询 OpenAlex、Unpaywall 和 Europe PMC，只接受真正的 `%PDF-` 文件。成功时输出文件路径和元数据。
-
-### 5.2 没有开放获取版本
-
-如果输出：
 
 ```text
-【找不到开放获取 PDF】
+这篇没有全文，标【找不到全文】，不要找替代引用。
 ```
-
-按以下顺序处理：
-
-1. 用学校/机构订阅在浏览器中打开出版社页面；
-2. 手动下载 PDF，保存到 `01_pdfs/`；
-3. 如果安装了 `nature-downloader`，可把它作为可选的机构下载层；
-4. 仍然没有权限时，在报告中写 `【找不到全文】`，不要伪造截图。
-
-**不要**绕过付费墙、CAPTCHA、Cloudflare 或 SSO。
-
----
-
-## 6. 定位原句并生成截图
-
-从 PDF 中复制一句**连续、逐字**的英文原句，然后运行：
-
-```bash
-python scripts/locate_passage.py 01_pdfs/Minegishi_2005_GenesCells_GATA2-turnover.pdf "Densitometric analyses of three independent GATA-2 immunoblots, which were normalized with the band intensity of β-actin immunoblots, showed that the half-life of endogenous GATA-2 in P815 cells was 27.7 ± 6.1 min (Fig. 1C)." --out-dir 02_shots --page 2
-```
-
-脚本对换行、PDF 断词和空格差异有容错。成功时生成：
 
 ```text
-02_shots/
-├─ Minegishi_2005_GenesCells_GATA2-turnover_p2_page.png
-├─ Minegishi_2005_GenesCells_GATA2-turnover_p2_crop.png
-└─ Minegishi_2005_GenesCells_GATA2-turnover_p2_passage.json
+这个 K 是归一化阈值，不能写成 Kd。
 ```
-
-JSON 里重点看：
-
-- `page_number`：1-based PDF 页码；
-- `context`：原句前后的上下文；
-- `bbox_pdf_points`：高亮区域坐标；
-- `occurrences_found`：该句在 PDF 中出现几次。
-
-如果提示 `【找不到原文】`：
-
-- 缩短引文，只保留一句；
-- 用 `--page` 限定到正确页；
-- 确认是否跨页；跨页时改用其中一页的短句；
-- 扫描版 PDF 没有文字层时，需要先 OCR。
-
-如果提示 `【找不到文本层】`，说明该 PDF 是图片扫描版，不能直接定位文字。
-
----
-
-## 7. 写 `spec.json`
-
-复制示例：
-
-```powershell
-Copy-Item assets/example_spec.json .\spec.json
-```
-
-macOS/Linux：
-
-```bash
-cp assets/example_spec.json spec.json
-```
-
-每个条目至少需要这些字段：
-
-```json
-{
-  "heading": "GATA2 半衰期",
-  "formulas": [["t1/2 = 27.7 ± 6.1 min", "#174A6E"]],
-  "citation": "Minegishi et al. 2005, Genes to Cells 10(7): 693–704",
-  "journal": "Genes to Cells 2005;10(7):693–704",
-  "paper_title": "Rapid turnover of GATA-2 via ubiquitin-proteasome protein degradation pathway",
-  "authors": "Naoko Minegishi; Norio Suzuki; Yukie Kawatani; Ritsuko Shimizu; Masayuki Yamamoto",
-  "links": "DOI 10.1111/j.1365-2443.2005.00864.x; PMID 15966900",
-  "quote": "Densitometric analyses ... 27.7 ± 6.1 min (Fig. 1C).",
-  "translation": "三次独立免疫印迹给出 P815 细胞内源 GATA-2 半衰期为 27.7 ± 6.1 min。",
-  "url": "https://doi.org/10.1111/j.1365-2443.2005.00864.x",
-  "verdict": "数值可用；不要把 0.5–1 h 写成实测范围。",
-  "verdict_level": "keep",
-  "english": "GATA2 is rapidly turned over, with a reported half-life of 27.7 ± 6.1 min in P815 cells.",
-  "local": "Minegishi_2005_GenesCells_GATA2-turnover.pdf, PDF p.2 / journal p.694",
-  "image": "02_shots/Minegishi_2005_GenesCells_GATA2-turnover_p2_crop.png",
-  "image_caption": "Minegishi et al. 2005, PDF p.2；黄底为 27.7 ± 6.1 min 原句。"
-}
-```
-
-`image` 可以写绝对路径，也可以写相对于 `spec.json` 的路径。
-
-完整字段顺序、表格宽度、颜色和 schema 见：
 
 ```text
-references/entry-spec.md
+这篇 PDF 我有，路径是 D:\文献\xxx.pdf。
 ```
-
-`verdict_level` 只接受：
-
-- `keep`：可用；
-- `relabel`：需要改标签；
-- `rederive`：需要重算；
-- `remove`：应删除；
-- `missing`：找不到。
-
-颜色规则：
-
-- 红 `#AE3A3A`：数值/引用错误，必须改；
-- 橙 `#915E0F`：模型设定或需要重标；
-- 绿 `#236C4D`：已核对，可用。
 
 ---
 
-## 8. 生成 Word
+## 第 5 步：它会自动做什么
 
-```bash
-python scripts/build_evidence_docx.py spec.json 03_output/parameter_evidence_report.docx
-```
+技能会按这个顺序工作：
 
-成功时会输出：
+1. 读正文和 SI，列出参数清单；
+2. 给每个参数分级：实测 / 换算 / 模型或代码设定 / 找不到；
+3. 检索候选论文；
+4. 核验 DOI、PMID、标题、作者、期刊和页码；
+5. 下载开放获取 PDF，或者提示你使用学校权限；
+6. 定位原文中的具体句子、图或表；
+7. 截取包含原句的页面；
+8. 把结果写进固定格式 Word；
+9. 生成修订清单，标出必须改、建议改和可用项。
+
+---
+
+## 第 6 步：你最后拿到什么
+
+通常会得到：
 
 ```text
-03_output/parameter_evidence_report.docx
-entries N
+D:\参数核验\
+├─ 参数文献依据核验_完整版.docx
+├─ 参数文献依据核验_完整版.pdf
+├─ 原文截图\
+└─ 找不到清单
 ```
 
-导出 PDF：
+Word 里每个参数会有：
 
-- Word：打开 DOCX，另存为 PDF；
-- LibreOffice：
+- 参数名、公式、数值和单位；
+- 文献信息；
+- 英文原句；
+- 中文核对；
+- 核验结论；
+- 可直接写进论文的英文句子；
+- 本地 PDF 文件名和页码；
+- 原文截图。
 
-```bash
-libreoffice --headless --convert-to pdf --outdir 03_output 03_output/parameter_evidence_report.docx
+---
+
+## 第 7 步：怎么检查 Word
+
+你主要检查这几件事：
+
+1. 正文和 SI 里的参数是否都出现了；
+2. 实测值是否都有页码、原句和截图；
+3. 模型设定是否明确写成“模型设定/代码设定”；
+4. 红色“必须改”的项目是否处理；
+5. `【找不到】` 是否说明了缺什么；
+6. 截图是否包含 `±`、单位和图号，没有被裁掉；
+7. 文献标题、作者、DOI 是否对得上。
+
+你不需要逐条重做。看到问题就直接追问，例如：
+
+```text
+这个参数文献不对，按 PDF 第 2 页那句改。
+```
+
+```text
+这个不是实验值，改成模型设定，并重新生成 Word。
+```
+
+```text
+这个截图没有包含原句，重新截一张。
+```
+
+```text
+这篇没有权限，标【找不到全文】。
 ```
 
 ---
 
-## 9. 复现检查
+## 重要规则
 
-逐项检查：
+技能会遵守这些边界：
 
-- 参数清单中的每一行是否只出现一次；
-- A 类是否都有页码、英文原句和截图；
-- B 类是否写明换算公式和输入值；
-- C 类是否明确写“模型设定/代码设定”，没有伪装成实验值；
-- `【找不到】` 是否说明缺什么，而不是留空；
-- DOI/PMID 是否与标题、作者匹配；
-- 截图是否包含 `±`、单位、图号，没有被裁掉；
-- DOCX 和 PDF 的条目是否一致；
-- 是否有空白页、跨页断表、孤立标题或图片裁切。
-
----
-
-## 10. 让别人复现你的报告
-
-需要共享：
-
-1. 本仓库；
-2. 你的 `spec.json`；
-3. 条目中引用的截图文件；
-4. 合法获得的 PDF，或明确的 DOI/页码线索；
-5. 字体环境（Microsoft YaHei、Cambria）。
-
-在同一份 `spec.json`、同一批截图和同一 Python 依赖下，生成器会复现相同的条目顺序、字体、颜色、表格、截图宽度和页脚。分页可能因 Word/LibreOffice 版本或字体缺失而略有差异。
-
-证据本身不能脱离 PDF 复现。别人没有付费文献权限时，正确结果是 `【找不到全文】`，不是替代引用或伪造截图。
-
-不要把没有授权的出版社 PDF 上传到 GitHub。仓库里只应放代码、模板和你有权共享的示例材料。
-
----
-
-## 11. 常见问题
-
-### `ModuleNotFoundError: No module named 'fitz'`
-
-```bash
-pip install -r requirements.txt
-```
-
-### `【找不到开放获取 PDF】`
-
-换用机构订阅、手动下载或请求作者提供副本；不要抓取绕过付费墙的链接。
-
-### `【找不到原文】`
-
-缩短引文，确认页码，检查是否跨页，必要时 OCR。
-
-### DOI 能打开但标题不对
-
-运行：
-
-```bash
-python scripts/verify_refs.py <DOI> <PMID>
-```
-
-以标题、作者、期刊和页码为准，不要只信 DOI 可解析。
-
-### Word 中文字体不对
-
-安装 Microsoft YaHei；或者在不改变 house style 的前提下，由维护者统一修改 `build_evidence_docx.py` 的字体常量，不要逐条手动改。
-
-### 图片路径找不到
-
-`image` 相对路径是相对于 `spec.json` 所在目录解析的。把截图放在 spec 同级目录或改成绝对路径。
-
----
-
-## 12. 安全边界
-
-- 不绕过付费墙、CAPTCHA、Cloudflare、SSO；
-- 不伪造 DOI、页码、原句或截图；
+- 不伪造文献、页码、原句或截图；
 - 不把代码运行结果写成实验测量；
-- 不把归一化阈值写成摩尔 `Kd`；
-- 不把综述、摘要或会议摘要升级为原始实测；
+- 不把归一化阈值写成摩尔 Kd；
+- 不把综述、摘要或会议摘要当成原始实测；
+- 不绕过付费墙、CAPTCHA、Cloudflare 或学校登录；
 - 找不到就写 `【找不到】` 或 `【找不到全文】`。
 
-这套流程的目标不是“让每个数字都有引用”，而是让每个数字都能被读者核对，并且该标缺失的地方明确标缺失。
+---
+
+## 一句话总结
+
+你只需要提供正文、SI、输出目录，再说：
+
+```text
+使用 parameter-evidence-support 技能，核对我正文和 SI 的全部参数，
+找原始文献、下载 PDF、截取原文，按固定格式生成 Word；
+找不到的写【找不到】。
+```
+
+剩下的查找、核对、截图和排版由技能完成。你负责最后检查 Word，并把不确定的地方告诉它。

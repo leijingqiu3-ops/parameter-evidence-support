@@ -6,7 +6,7 @@ It was built for computational-biology and systems-biology manuscripts, especial
 
 ## 给第一次使用的人（中文）
 
-你不需要先懂代码。准备好这三样东西即可：
+你不需要先懂代码，也不需要自己运行脚本。准备好这三样东西即可：
 
 1. 正文：PDF 或 DOCX；
 2. SI：PDF 或 DOCX；
@@ -61,8 +61,8 @@ The core path does **not** require any other Codex skill. Optional integrations 
 
 ## Tutorial
 
-- 中文完整使用与复现教程：[`docs/TUTORIAL.zh-CN.md`](docs/TUTORIAL.zh-CN.md)
-- 教程覆盖：安装、参数清单、文献检索、开放获取 PDF、原文定位截图、`spec.json`、Word 生成、复现检查和常见问题。
+- 中文使用教程：[`docs/TUTORIAL.zh-CN.md`](docs/TUTORIAL.zh-CN.md)
+- 教程覆盖：准备文件、复制指令、回答追问、检查 Word 和常见问题。
 
 ## Requirements
 
