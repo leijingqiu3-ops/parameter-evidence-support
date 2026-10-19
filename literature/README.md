@@ -16,6 +16,15 @@ Run the health check before a large job:
 python scripts/lit_stack.py doctor
 ```
 
+On a fresh machine, install any missing adapters from their public upstream repositories:
+
+```bash
+python scripts/install_literature_skills.py --check
+python scripts/install_literature_skills.py --install
+```
+
+The installer skips skills that already exist and never asks for passwords, cookies, or OTP codes. If it fails, use the core fallback and state which adapter is missing.
+
 Bundled components:
 
 - `nature-downloader` - MIT, Copyright (c) 2026 baihe26. Authorized institutional/browser-session PDF acquisition.

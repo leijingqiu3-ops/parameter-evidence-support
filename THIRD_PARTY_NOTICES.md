@@ -27,11 +27,11 @@ The following skills are detected in the user's Codex skills directory and invok
 | `nature-academic-search` | Apache-2.0 upstream (`Yuan1z0825/nature-skills`); installed copy may omit a LICENSE file | `literature/adapters/nature-academic-search.md` |
 | `nature-reader` | Apache-2.0 upstream (`Yuan1z0825/nature-skills`); installed copy may omit a LICENSE file | `literature/adapters/nature-reader.md` |
 | `nature-citation` | Apache-2.0 upstream (`Yuan1z0825/nature-skills`); installed copy may omit a LICENSE file | `literature/adapters/nature-citation.md` |
-| `nature-literature-pipeline` | Apache-2.0 upstream repository; installed `SKILL.md` declares MIT | `literature/adapters/nature-literature-pipeline.md` |
-| `literature-mapper` | Custom non-commercial terms in the installed README; not bundled | `literature/adapters/literature-mapper.md` |
-| `zotero-taxonomy-curator` | No license file found in the installed copy; not bundled | `literature/adapters/zotero-taxonomy-curator.md` |
+| `nature-literature-pipeline` | Apache-2.0 upstream (`Yuan1z0825/nature-skills`); installed `SKILL.md` declares MIT | `literature/adapters/nature-literature-pipeline.md` |
+| `literature-mapper` | Custom non-commercial terms in the upstream README (`Zywang812/literature-mapper-skill`); not bundled | `literature/adapters/literature-mapper.md` |
+| `zotero-taxonomy-curator` | MIT upstream (`ganzoth/zotero-taxonomy-curator`); not bundled | `literature/adapters/zotero-taxonomy-curator.md` |
 
-Before redistributing an adapter's source or using it commercially, verify the upstream license and obtain permission where required.
+`scripts/install_literature_skills.py` downloads these adapters from their public upstream archives at run time. Their source is not copied into this repository. Before redistributing an adapter's source or using it commercially, verify the upstream license at the time of use and obtain permission where required.
 
 ## Python dependencies
 

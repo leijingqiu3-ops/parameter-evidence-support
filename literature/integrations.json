@@ -4,6 +4,7 @@
   "policy": {
     "bundled": "Only components with a redistributable license are copied into literature/vendor; their original LICENSE files are retained.",
     "local_adapter": "Components without a verified redistributable license are not copied. The router detects them under the user's Codex skills directory and invokes them in place.",
+    "runtime_installer": "Missing adapters can be installed at runtime from the public upstream archives recorded in each install block. The installer skips existing skills unless --force is supplied.",
     "core_first": "The scripts in scripts/ remain the fallback and the only required execution path."
   },
   "skills": [
@@ -43,6 +44,12 @@
       "adapter": "literature/adapters/nature-academic-search.md",
       "license": "Apache-2.0 upstream; installed copy may omit a LICENSE file",
       "upstream": "https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-academic-search",
+      "install": {
+        "type": "github_archive",
+        "repo": "Yuan1z0825/nature-skills",
+        "ref": "main",
+        "source_dir": "skills/nature-academic-search"
+      },
       "fallback": "scripts/find_papers.py + scripts/verify_refs.py"
     },
     {
@@ -53,6 +60,13 @@
       "adapter": "literature/adapters/nature-reader.md",
       "license": "Apache-2.0 upstream; installed copy may omit a LICENSE file",
       "upstream": "https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-reader",
+      "install": {
+        "type": "github_archive",
+        "repo": "Yuan1z0825/nature-skills",
+        "ref": "main",
+        "source_dir": "skills/nature-reader",
+        "requires_shared": true
+      },
       "fallback": "scripts/locate_passage.py for the evidence passage only"
     },
     {
@@ -63,6 +77,13 @@
       "adapter": "literature/adapters/nature-citation.md",
       "license": "Apache-2.0 upstream; installed copy may omit a LICENSE file",
       "upstream": "https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-citation",
+      "install": {
+        "type": "github_archive",
+        "repo": "Yuan1z0825/nature-skills",
+        "ref": "main",
+        "source_dir": "skills/nature-citation",
+        "requires_shared": true
+      },
       "fallback": "scripts/find_papers.py + scripts/verify_refs.py; manual citation assembly"
     },
     {
@@ -73,6 +94,13 @@
       "adapter": "literature/adapters/nature-literature-pipeline.md",
       "license": "Apache-2.0 upstream repository; installed SKILL.md declares MIT",
       "upstream": "https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-literature-pipeline",
+      "install": {
+        "type": "github_archive",
+        "repo": "Yuan1z0825/nature-skills",
+        "ref": "main",
+        "source_dir": "skills/nature-literature-pipeline",
+        "requires_shared": true
+      },
       "fallback": "Run scripts/find_papers.py manually on a schedule"
     },
     {
@@ -81,8 +109,14 @@
       "delivery": "local-adapter",
       "path": "~/.codex/skills/literature-mapper",
       "adapter": "literature/adapters/literature-mapper.md",
-      "license": "Custom non-commercial license in the installed README; not bundled",
-      "upstream": "Installed local copy; see its README for the author's terms",
+      "license": "Custom non-commercial license in the upstream README; not bundled",
+      "upstream": "https://github.com/Zywang812/literature-mapper-skill",
+      "install": {
+        "type": "github_archive",
+        "repo": "Zywang812/literature-mapper-skill",
+        "ref": "main",
+        "source_dir": ""
+      },
       "fallback": "scripts/find_papers.py for candidate discovery"
     },
     {
@@ -91,9 +125,26 @@
       "delivery": "local-adapter",
       "path": "~/.codex/skills/zotero-taxonomy-curator",
       "adapter": "literature/adapters/zotero-taxonomy-curator.md",
-      "license": "No license file found in the installed copy; not bundled",
-      "upstream": "Installed local copy; inspect its source terms before redistribution",
+      "license": "MIT upstream; installed copy may omit a LICENSE file; not bundled",
+      "upstream": "https://github.com/ganzoth/zotero-taxonomy-curator",
+      "install": {
+        "type": "github_archive",
+        "repo": "ganzoth/zotero-taxonomy-curator",
+        "ref": "main",
+        "source_dir": "skills/zotero-taxonomy-curator"
+      },
       "fallback": "Extract the relevant page with scripts/locate_passage.py and keep notes outside the evidence report"
+    }
+  ],
+  "shared_components": [
+    {
+      "name": "nature-shared",
+      "repo": "Yuan1z0825/nature-skills",
+      "ref": "main",
+      "source_dir": "skills/nature-shared",
+      "target_dir": "_shared",
+      "license": "Apache-2.0",
+      "required_for": ["nature-reader", "nature-citation", "nature-literature-pipeline"]
     }
   ]
 }

@@ -81,6 +81,8 @@ pip install -r literature/vendor/nature-downloader/requirements.txt
 
 ## Install
 
+The canonical repository is <https://github.com/leijingqiu3-ops/parameter-evidence-support>. In Codex, ask it to install the skill from that repository into `~/.codex/skills/parameter-evidence-support`, then run the literature bootstrap below. A manual copy also works.
+
 Copy this directory into your Codex skills directory:
 
 ```text
@@ -95,11 +97,53 @@ C:\Users\<you>\.codex\skills\parameter-evidence-support
 
 The skill is loaded from `SKILL.md`.
 
+## One-command bootstrap for the literature adapters
+
+The report workflow works immediately after installation. The optional literature skills are installed separately because they live in the user's Codex skills directory and have different upstream licenses.
+
+Ask Codex to do the first-run installation:
+
+```text
+请使用 parameter-evidence-support 完成首次文献栈安装：
+1. 运行 python scripts/lit_stack.py doctor；
+2. 如果文献适配器缺失，运行 python scripts/install_literature_skills.py --install；
+3. 安装完成后再次运行 doctor；
+4. 安装失败的告诉我缺哪个技能、上游在哪里，不要伪造安装结果。
+```
+
+Or run it directly:
+
+```bash
+python scripts/install_literature_skills.py --check
+python scripts/install_literature_skills.py --install
+```
+
+The installer:
+
+- skips skills that are already installed;
+- downloads the missing skills from their public upstream repositories at run time;
+- installs `nature-shared` as `~/.codex/skills/_shared` when `nature-reader`, `nature-citation`, or `nature-literature-pipeline` needs it;
+- does not overwrite an existing skill unless `--force` is supplied;
+- never asks for passwords, cookies, or OTP codes.
+
+Automatic sources currently used:
+
+| Skills | Upstream | License note |
+|---|---|---|
+| `nature-academic-search`, `nature-reader`, `nature-citation`, `nature-literature-pipeline`, `nature-shared` | `Yuan1z0825/nature-skills` | Apache-2.0 upstream |
+| `literature-mapper` | `Zywang812/literature-mapper-skill` | Custom non-commercial terms in its README |
+| `zotero-taxonomy-curator` | `ganzoth/zotero-taxonomy-curator` | MIT upstream |
+
+`nature-downloader` and `organize-research-literature` are already bundled under `literature/vendor/`; they are not downloaded by this installer.
+
+If installation fails, the core scripts still work. Use `literature/router.md` to see the fallback for the missing adapter.
+
 ## Quick start
 
 ```bash
-# 0. Check the environment and integrated components
+# 0. Check the environment, then install missing literature adapters
 python scripts/lit_stack.py doctor
+python scripts/install_literature_skills.py --install
 
 # 1. Find candidate papers
 python scripts/lit_stack.py search "GATA2 half-life P815" --limit 15 --out candidates.csv

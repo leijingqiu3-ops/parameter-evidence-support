@@ -90,6 +90,45 @@ python scripts/lit_stack.py doctor
 python scripts/lit_stack.py list
 ```
 
+### 别人从 GitHub 下载后，怎么让 Codex 自动补齐文献技能
+
+仓库地址：<https://github.com/leijingqiu3-ops/parameter-evidence-support>
+
+核心 Word 流程不需要额外技能也能跑。缺少检索、阅读或引用适配器时，把下面这段直接发给 Codex：
+
+```text
+请使用 parameter-evidence-support 完成首次文献栈安装：
+1. 运行 python scripts/lit_stack.py doctor；
+2. 如果文献适配器缺失，运行 python scripts/install_literature_skills.py --install；
+3. 安装完成后再次运行 doctor；
+4. 安装失败的告诉我缺哪个技能、上游在哪里，不要伪造安装结果。
+```
+
+也可以自己运行：
+
+```bash
+python scripts/install_literature_skills.py --check
+python scripts/install_literature_skills.py --install
+```
+
+安装器会：
+
+- 跳过已经装好的技能；
+- 从公开上游仓库下载缺失的技能；
+- 需要时把 `nature-shared` 安装为 `~/.codex/skills/_shared`；
+- 默认不覆盖已有技能，只有加 `--force` 才替换；
+- 不索要密码、cookie 或短信验证码。
+
+目前会自动安装的来源是：
+
+| 技能 | 上游 |
+|---|---|
+| `nature-academic-search`、`nature-reader`、`nature-citation`、`nature-literature-pipeline`、`nature-shared` | `Yuan1z0825/nature-skills` |
+| `literature-mapper` | `Zywang812/literature-mapper-skill` |
+| `zotero-taxonomy-curator` | `ganzoth/zotero-taxonomy-curator` |
+
+`nature-downloader` 和 `organize-research-literature` 已经内置，不需要再下载。
+
 ### 内置了什么
 
 | 组件 | 作用 |

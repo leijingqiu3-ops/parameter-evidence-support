@@ -319,7 +319,10 @@ def print_doctor(data: dict[str, Any]) -> None:
     if not school["configured"]:
         hints.append("Run: python scripts/lit_stack.py school preset \"上海交通大学\" (or use your real library URL).")
     if summary["optional_adapters_available"] < summary["optional_adapters_total"]:
-        hints.append("Optional adapters are absent; the core scripts will be used instead.")
+        hints.append(
+            "Optional adapters are absent; run: python scripts/install_literature_skills.py --install "
+            "(the core scripts still work)."
+        )
     if hints:
         print()
         print("Next steps")

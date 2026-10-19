@@ -36,6 +36,10 @@ Use this router before a literature step. The evidence standard in the parent sk
 ## Useful commands
 
 ```bash
+# Fresh-machine bootstrap for missing adapters
+python scripts/install_literature_skills.py --check
+python scripts/install_literature_skills.py --install
+
 python scripts/lit_stack.py doctor
 python scripts/lit_stack.py list
 python scripts/lit_stack.py path nature-downloader

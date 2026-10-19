@@ -31,6 +31,10 @@ Run `python scripts/lit_stack.py doctor` to see which layers are ready. `python 
 ## Commands
 
 ```bash
+# Fresh-machine bootstrap (downloads missing adapters from public upstreams)
+python scripts/install_literature_skills.py --check
+python scripts/install_literature_skills.py --install
+
 # Environment and component check
 python scripts/lit_stack.py doctor
 python scripts/lit_stack.py list

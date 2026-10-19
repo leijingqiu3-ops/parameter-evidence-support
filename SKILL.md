@@ -77,6 +77,16 @@ Install the Python dependencies once:
 pip install -r requirements.txt
 ```
 
+On a fresh machine, verify the optional literature adapters and install any that are missing from their public upstream repositories:
+
+```bash
+python scripts/lit_stack.py doctor
+python scripts/install_literature_skills.py --check
+python scripts/install_literature_skills.py --install
+```
+
+The installer reads the upstream repositories from `literature/integrations.json`, installs `nature-shared` as `~/.codex/skills/_shared` when required, and skips existing skills unless `--force` is supplied. If an installation fails, report the missing adapter and its upstream URL, continue with the core fallback, and never claim that the adapter was installed or used.
+
 The only unavoidable external dependency is lawful access to a paywalled PDF. The bundled downloader handles open-access copies only and never bypasses a paywall, CAPTCHA, Cloudflare check, or institutional login.
 
 ## Integrated literature stack
