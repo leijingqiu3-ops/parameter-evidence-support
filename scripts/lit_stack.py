@@ -286,6 +286,12 @@ def print_doctor(data: dict[str, Any]) -> None:
             print(f"         fallback: {item['fallback']}")
 
     summary = data["summary"]
+    downloader_ready = all(
+        item["available"] for item in data["packages"]["institutional_downloader"].values()
+    )
+    organizer_ready = all(
+        item["available"] for item in data["packages"]["local_corpus"].values()
+    )
     print()
     print("Summary")
     print(f"  core report packages: {_mark(summary['core_report_packages_ready'])}")
@@ -302,6 +308,10 @@ def print_doctor(data: dict[str, Any]) -> None:
         hints.append("Install Node.js 22+ to use the bundled institutional downloader.")
     if not summary["core_report_packages_ready"]:
         hints.append("Run: pip install -r requirements.txt")
+    if not downloader_ready:
+        hints.append("Run: pip install -r literature/vendor/nature-downloader/requirements.txt")
+    if not organizer_ready:
+        hints.append("Install openpyxl for the bundled local-corpus organizer.")
     if not summary["bundled_components_ready"]:
         hints.append("Reinstall the skill; literature/vendor is incomplete.")
     if not cdp["reachable"]:
