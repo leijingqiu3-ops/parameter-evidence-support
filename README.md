@@ -20,6 +20,11 @@ It was built for computational-biology and systems-biology manuscripts, especial
 
 The core path does **not** require any other Codex skill. Optional integrations are listed below.
 
+## Tutorial
+
+- 中文完整使用与复现教程：[`docs/TUTORIAL.zh-CN.md`](docs/TUTORIAL.zh-CN.md)
+- 教程覆盖：安装、参数清单、文献检索、开放获取 PDF、原文定位截图、`spec.json`、Word 生成、复现检查和常见问题。
+
 ## Requirements
 
 - Python 3.10 or later
@@ -93,6 +98,7 @@ The evidence itself is reproducible only when the source PDF and the quoted page
 ```text
 SKILL.md
 requirements.txt
+docs/TUTORIAL.zh-CN.md
 agents/openai.yaml
 references/entry-spec.md
 references/verification-playbook.md

@@ -215,6 +215,7 @@ Routing and failure rules are in `references/literature-stack.md`. If another sk
 
 ## Resources
 
+- `docs/TUTORIAL.zh-CN.md` - complete Chinese installation, usage, and reproduction tutorial.
 - `references/entry-spec.md` - exact field order, table widths, colours, and JSON schema.
 - `references/verification-playbook.md` - queries, PDF acquisition, page mapping, screenshots, and common traps.
 - `references/literature-stack.md` - core scripts versus optional integrations.
