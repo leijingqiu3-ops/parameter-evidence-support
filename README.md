@@ -4,6 +4,45 @@ A self-contained Codex skill for turning a manuscript's parameter list into an a
 
 It was built for computational-biology and systems-biology manuscripts, especially cases where a main text or SI mixes experimental measurements, derived rates, normalized Hill thresholds, fitted parameters, scan ranges, and code-set numerical constants.
 
+## 给第一次使用的人（中文）
+
+你不需要先懂代码。准备好这三样东西即可：
+
+1. 正文：PDF 或 DOCX；
+2. SI：PDF 或 DOCX；
+3. 一个输出文件夹，例如 `D:\参数核验`。
+
+把下面这段直接发给 Codex，并把路径换成你自己的：
+
+```text
+使用 parameter-evidence-support 技能，核对我正文和 SI 的全部参数，
+找原始文献、下载 PDF、截取原文，按固定格式生成 Word；
+找不到的写【找不到】。
+
+正文：D:\我的论文\正文.pdf
+SI：D:\我的论文\SI.pdf
+输出到：D:\参数核验
+
+如果某篇文献没有访问权限，不要绕过付费墙，直接标【找不到全文】。
+```
+
+技能会依次做：
+
+1. 从正文和 SI 提取全部参数；
+2. 判断哪些是实测值、换算值、模型设定或找不到；
+3. 检索原始文献并核验 DOI/PMID；
+4. 下载有权限的 PDF；
+5. 定位原文句子并截图；
+6. 生成固定格式 Word，并列出必须修改的地方。
+
+你最后主要检查三个结果：
+
+- `参数文献依据核验_完整版.docx`
+- 同名 PDF 预览
+- `【找不到】` 或 `【找不到全文】` 清单
+
+详细步骤见：[`docs/TUTORIAL.zh-CN.md`](docs/TUTORIAL.zh-CN.md)
+
 ## What it does
 
 - Extracts every numeric parameter from a manuscript, SI, parameter table, or code.

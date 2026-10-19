@@ -25,6 +25,18 @@ Use this skill when the user wants to:
 
 Typical requests: `参数文献支撑`, `每个参数找到原始文献`, `这句参数出处在哪里`, `把参数核验做成 Word`, `找 PDF 并截原文`, `审稿前参数审计`.
 
+## Minimum user prompt
+
+A first-time user does not need to know the scripts. Accept this prompt as sufficient:
+
+```text
+使用 parameter-evidence-support 技能，核对我正文和 SI 的全部参数，
+找原始文献、下载 PDF、截取原文，按固定格式生成 Word；
+找不到的写【找不到】。
+```
+
+Before starting, confirm the main text, SI, and output directory. If the user has not supplied paths, ask for them once. The rest of the workflow is the agent's responsibility.
+
 ## Inputs
 
 Required:
