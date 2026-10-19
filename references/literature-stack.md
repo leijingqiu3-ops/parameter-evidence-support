@@ -8,7 +8,7 @@ The standard workflow is self-contained. External skills are optional accelerato
 |---|---|---|
 | Find candidate papers | `scripts/find_papers.py` | Europe PMC + OpenAlex CSV |
 | Verify DOI/PMID identity | `scripts/verify_refs.py` | Crossref + PubMed metadata |
-| Obtain an open-access PDF | `scripts/download_pdf.py` | PDF or explicit `【找不到开放获取 PDF】` |
+| Obtain an open-access PDF | `scripts/download_pdf.py` | PDF or classified access status |
 | Find the exact passage and page | `scripts/locate_passage.py` | JSON + full-page PNG + crop PNG |
 | Build the Word report | `scripts/build_evidence_docx.py` | DOCX in the fixed house style |
 
@@ -47,7 +47,7 @@ python scripts/locate_passage.py pdfs/paper.pdf "verbatim sentence" --out-dir sh
 python scripts/build_evidence_docx.py spec.json report.docx
 ```
 
-`download_pdf.py` checks OpenAlex, Unpaywall, and Europe PMC and accepts only a valid `%PDF-` response. It never attempts a paywall bypass.
+`download_pdf.py` checks OpenAlex, Unpaywall, and Europe PMC and accepts only a valid `%PDF-` response. It never attempts a paywall bypass. Access failures are classified as `cloudflare_challenge`, `publisher_verification`, `institutional_access_required`, `rate_limited`, `response_not_pdf`, or `transport_error`; verification classes return exit code 4 for a manual browser handoff.
 
 `locate_passage.py` uses an alphanumeric-only matching stream, so line breaks, PDF hyphenation, and variable spacing do not prevent a match. It returns the 1-based PDF page, bounding box, surrounding context, page PNG, and highlighted crop PNG.
 

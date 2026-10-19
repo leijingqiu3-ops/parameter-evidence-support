@@ -1,4 +1,4 @@
 interface:
   display_name: "Parameter Evidence Support (参数文献支撑)"
-  short_description: "Self-contained workflow: find papers, download open-access PDFs, locate exact passages and screenshots, verify metadata, and build a fixed-format Chinese DOCX/PDF with explicit 【找不到】 markers."
+  short_description: "Self-contained workflow: find papers, download open-access PDFs, classify publisher-access failures, locate exact passages and multi-image screenshots, verify metadata, and build a fixed-format Chinese DOCX/PDF with explicit 【找不到】 markers."
   default_prompt: "使用 parameter-evidence-support 技能，核对我正文和 SI 的全部参数，找原始文献、下载 PDF、截取原文，按固定格式生成 Word；找不到的写【找不到】。开始前先确认正文、SI 和输出目录。"

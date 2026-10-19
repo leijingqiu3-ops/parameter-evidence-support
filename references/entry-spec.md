@@ -14,7 +14,7 @@
 | Muted colour | `#5B6770` |
 | Accent light | `#EAF1F6` |
 | Quote block | fill `#F4F8FA`, left rule `#174A6E`, 9.6 pt |
-| Screenshot | 16.4 cm wide, caption 8.8 pt muted, no crop of the sentence |
+| Screenshot | 16.4 cm wide by default; height capped at 20 cm; images taller than 9 cm start a new page; caption 8.8 pt muted; no crop of the sentence |
 | Footer | document title + PAGE field, 8.5 pt muted |
 | Table | header `#174A6E` white bold; body 8.8–9.6 pt; repeat header row |
 
