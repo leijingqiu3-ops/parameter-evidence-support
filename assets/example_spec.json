@@ -1,0 +1,71 @@
+{
+  "title": "示例：参数文献依据核验",
+  "subtitle": "每个数值都要能回到原文的某一页；找不到就写【找不到】",
+  "intro": "这是一个最小示例。把 spec.json 复制到你的项目目录，按同样字段填入真实条目即可。",
+  "grades": [
+    ["A", "原始论文直接实测", "GATA2 27.7 ± 6.1 min"],
+    ["B", "由实验值或比值换算", "μ = ln2 / t½"],
+    ["C", "模型、数值协议或代码设定", "K_G2norm = 0.30"],
+    ["D", "找不到", "无全文/无截图/无原始论文"]
+  ],
+  "reading_notes": [
+    "先看修订清单，再逐条核对原文。",
+    "A 类必须有页码、原句和截图；B/C 类必须标注换算或模型设定。",
+    "找不到的字段留空，只写【找不到】和缺什么。"
+  ],
+  "revision_summary": [
+    {"priority": "必须改", "items": ["把“约 30 min”改成 27.7 ± 6.1 min（P815，Fig. 1C）。", "不要把 K_G2norm=0.30 写成 Kd。"]},
+    {"priority": "建议改", "items": ["在 SI 增加 numerical constants 表。"]}
+  ],
+  "sections": [
+    {
+      "heading": "A. 降解与半衰期参数",
+      "entries": [
+        {
+          "heading": "GATA2 半衰期",
+          "formulas": [["t₁/₂ = 27.7 ± 6.1 min（P815）", "#174A6E"]],
+          "citation": "Minegishi et al. 2005, Genes to Cells 10(7): 693–704",
+          "journal": "Genes to Cells 2005;10(7):693–704",
+          "paper_title": "Rapid turnover of GATA-2 via ubiquitin-proteasome protein degradation pathway",
+          "authors": "Naoko Minegishi; Norio Suzuki; Yukie Kawatani; Ritsuko Shimizu; Masayuki Yamamoto",
+          "links": "DOI 10.1111/j.1365-2443.2005.00864.x; PMID 15966900",
+          "quote": "Densitometric analyses of three independent GATA-2 immunoblots, which were normalized with the band intensity of β-actin immunoblots, showed that the half-life of endogenous GATA-2 in P815 cells was 27.7 ± 6.1 min (Fig. 1C).",
+          "translation": "三次独立免疫印迹（以 β-actin 归一化）给出 P815 细胞内源 GATA-2 半衰期为 27.7 ± 6.1 min。",
+          "url": "https://doi.org/10.1111/j.1365-2443.2005.00864.x",
+          "verdict": "数值可用；不要只写“约 30 min”，也不要把 0.5–1 h 写成实测范围。",
+          "verdict_level": "keep",
+          "english": "GATA2 is rapidly turned over, with a reported half-life of 27.7 ± 6.1 min in P815 cells.",
+          "local": "Minegishi_2005_GenesCells_GATA2-turnover.pdf, PDF p.2 / journal p.694",
+          "image": "example_screenshot.png",
+          "image_caption": "示例占位图：实际使用时替换为包含原句的原文截图。"
+        },
+        {
+          "heading": "归一化 Hill 阈值 K_G2",
+          "formulas": [["K_G2norm = 0.30（dimensionless）", "#174A6E"]],
+          "citation": "本模型设定（HSC 正文 p.3–4；SI 式(1)）",
+          "journal": "无外部实验论文",
+          "paper_title": "Normalized Hill thresholds used for numerical exploration",
+          "authors": "本模型作者",
+          "links": "HSC 正文 Table 2；SI 式(1)",
+          "quote": "For numerical exploration we choose a normalized scale Knorm G2 = 0.30 and use the measured ratios to set Knorm P = 0.15 and Knorm G1 = 0.39.",
+          "translation": "数值探索取无量纲阈值 K_G2norm=0.30，并按实验比值设 K_Pnorm=0.15、K_G1norm=0.39。",
+          "url": "无外部实验论文；定义见 HSC 正文 p.3–4 与 SI 式(1)",
+          "verdict": "这是模型阈值，不是摩尔 Kd；不能配“实测 Kd”引用。",
+          "verdict_level": "relabel",
+          "english": "We set the dimensionless threshold K_G2norm = 0.30; the remaining thresholds follow the measured ratios.",
+          "local": "无外部 PDF；HSC 正文与 SI"
+        }
+      ]
+    }
+  ],
+  "not_found": [
+    {
+      "reference": "Zhang & Watson 2005, J Biochem",
+      "missing": "FLI1 p51/p48 的图和实验条件",
+      "status": "【找不到全文】出版社全文无法获取；仅 PubMed 摘要明确 105/80 min，图和实验条件未核对。",
+      "url": "https://doi.org/10.1093/jb/mvi032"
+    }
+  ],
+  "files": ["Minegishi_2005_GenesCells_GATA2-turnover.pdf（PDF p.2 / journal p.694）"],
+  "advice": ["先做参数清单，再逐条查文献。", "找不到就留空并写【找不到】。"]
+}
